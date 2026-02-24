@@ -37,8 +37,8 @@
 //    (or just disable RLS for simplicity during development)
 // ═══════════════════════════════════════════
 
-const SUPABASE_URL = 'JOUW_SUPABASE_URL_HIER';        // ← vervang dit
-const SUPABASE_ANON_KEY = 'JOUW_SUPABASE_ANON_KEY_HIER'; // ← vervang dit
+const SUPABASE_URL = 'sb_publishable_s9qgpelxpWq4YiISdjYbiw_1Vc_8Cu2';        // ← vervang dit
+const SUPABASE_ANON_KEY = 'sb_secret_0nbfSDTcUnp6UFB9skQ7zQ_ujWgjDUh'; // ← vervang dit
 
 // Lightweight Supabase client (no npm needed)
 const sb = {

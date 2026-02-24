@@ -1,186 +1,273 @@
-<script>
-// ── DATA STORE (in-memory, replace with backend/localStorage for persistence) ──
+/* ══════════════════════════════════════════
+   Henna by Romaysa — script.js
+══════════════════════════════════════════ */
+
+// ── CREDENTIALS ────────────────────────────
 const ADMIN_USER = 'Romaysa';
 const ADMIN_PASS = 'Henna2026';
 
-let availability = {}; 
-let appointments = []; 
-let selectedSlot = null; 
-let isAdmin = false;
+// ── DATA STORE (localStorage) ──────────────
+const STORAGE_SLOTS = 'henna_slots';
+const STORAGE_APPOINTMENTS = 'henna_appointments';
 
-// ── SLOTS DISPLAY ──
+function getSlots() {
+  return JSON.parse(localStorage.getItem(STORAGE_SLOTS) || '{}');
+}
+function saveSlots(data) {
+  localStorage.setItem(STORAGE_SLOTS, JSON.stringify(data));
+}
+function getAppointments() {
+  return JSON.parse(localStorage.getItem(STORAGE_APPOINTMENTS) || '[]');
+}
+function saveAppointments(data) {
+  localStorage.setItem(STORAGE_APPOINTMENTS, JSON.stringify(data));
+}
+
+// ── STATE ──────────────────────────────────
+let selectedSlot = null; // { date, time }
+
+// ── SCROLL ANIMATIONS ──────────────────────
+function initScrollAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+}
+
+// ── FORMAT DATE NICELY ─────────────────────
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+// ── RENDER SLOTS (public booking view) ─────
 function renderSlots() {
-  const el = document.getElementById('slotsDisplay');
-  const keys = Object.keys(availability).sort();
-  if (keys.length === 0) {
-    el.innerHTML = '<p class="no-slots">Momenteel geen beschikbaarheid gepland. Neem contact op voor persoonlijke afspraak.</p>';
+  const display = document.getElementById('slotsDisplay');
+  if (!display) return;
+
+  const slots = getSlots();
+  const appts = getAppointments();
+
+  const bookedKeys = new Set(appts.map(a => `${a.date}__${a.time}`));
+
+  const today = new Date().toISOString().slice(0, 10);
+  const dates = Object.keys(slots).filter(d => d >= today).sort();
+
+  if (dates.length === 0) {
+    display.innerHTML = '<p class="no-slots">Er zijn momenteel geen beschikbare tijden. Kom binnenkort terug!</p>';
     return;
   }
-  el.innerHTML = keys.map(date => {
-    const times = availability[date];
-    const dateObj = new Date(date + 'T12:00:00');
-    const dayStr = dateObj.toLocaleDateString('nl-NL', { weekday:'long', day:'numeric', month:'long' });
-    const timeButtons = times.map(t => {
-      const booked = appointments.some(a => a.date === date && a.time === t);
-      const sel = selectedSlot && selectedSlot.date === date && selectedSlot.time === t;
-      return `<button class="slot-btn${booked?' booked':''}${sel?' selected':''}"
-        ${booked ? 'disabled' : `onclick="selectSlot('${date}','${t}')"`}>
-        ${t}${booked ? ' (vol)' : ''}
-      </button>`;
+
+  display.innerHTML = dates.map(date => {
+    const times = slots[date];
+    if (!times || times.length === 0) return '';
+
+    const timeButtons = times.map(time => {
+      const key = `${date}__${time}`;
+      const isBooked = bookedKeys.has(key);
+      return `<button
+        class="slot-btn ${isBooked ? 'booked' : ''}"
+        onclick="${isBooked ? '' : `selectSlot('${date}','${time}')`}"
+        ${isBooked ? 'disabled title="Niet beschikbaar"' : ''}
+      >${time}</button>`;
     }).join('');
-    return `<div class="slot-day">
-      <div class="slot-date">${dayStr}</div>
-      <div class="slot-times">${timeButtons}</div>
-    </div>`;
+
+    return `
+      <div class="slot-day">
+        <div class="slot-date">${formatDate(date)}</div>
+        <div class="slot-times">${timeButtons}</div>
+      </div>`;
   }).join('');
 }
 
+// ── SELECT A SLOT ──────────────────────────
 function selectSlot(date, time) {
   selectedSlot = { date, time };
-  const dateObj = new Date(date + 'T12:00:00');
-  const dayStr = dateObj.toLocaleDateString('nl-NL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('selectedSlotDisplay').textContent = `✓  ${dayStr} om ${time}`;
-  renderSlots();
+
+  document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
+  event.target.classList.add('selected');
+
+  const display = document.getElementById('selectedSlotDisplay');
+  if (display) {
+    display.textContent = `✦ ${formatDate(date)} om ${time}`;
+  }
 }
 
-// ── BOOKING ──
+// ── SUBMIT BOOKING ─────────────────────────
 function submitBooking() {
-  const name = document.getElementById('bookName').value.trim();
-  const email = document.getElementById('bookEmail').value.trim();
-  const phone = document.getElementById('bookPhone').value.trim();
-  const type = document.getElementById('bookType').value;
-  const errEl = document.getElementById('bookError');
-  const sucEl = document.getElementById('bookSuccess');
-  errEl.style.display = 'none';
-  sucEl.style.display = 'none';
+  const name  = document.getElementById('bookName')?.value.trim();
+  const email = document.getElementById('bookEmail')?.value.trim();
+  const phone = document.getElementById('bookPhone')?.value.trim();
+  const type  = document.getElementById('bookType')?.value;
+
+  const successEl = document.getElementById('bookSuccess');
+  const errorEl   = document.getElementById('bookError');
+
+  if (successEl) successEl.style.display = 'none';
+  if (errorEl)   errorEl.style.display   = 'none';
 
   if (!name || !email || !phone || !selectedSlot) {
-    errEl.style.display = 'block';
+    if (errorEl) errorEl.style.display = 'block';
     return;
   }
-  appointments.push({ name, email, phone, type: type || 'Niet opgegeven', date: selectedSlot.date, time: selectedSlot.time });
-  sucEl.style.display = 'block';
-  document.getElementById('bookName').value = '';
-  document.getElementById('bookEmail').value = '';
-  document.getElementById('bookPhone').value = '';
-  document.getElementById('bookType').value = '';
-  document.getElementById('selectedSlotDisplay').textContent = '← Selecteer eerst een tijd';
-  selectedSlot = null;
+
+  const appts = getAppointments();
+  appts.push({
+    name, email, phone,
+    type: type || '—',
+    date: selectedSlot.date,
+    time: selectedSlot.time,
+    status: 'Nieuw',
+    createdAt: new Date().toISOString()
+  });
+  saveAppointments(appts);
+
   renderSlots();
-  if (isAdmin) renderAdminAppointments();
+
+  selectedSlot = null;
+  const slotDisplay = document.getElementById('selectedSlotDisplay');
+  if (slotDisplay) slotDisplay.textContent = '← Selecteer eerst een tijd';
+  ['bookName','bookEmail','bookPhone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const bookType = document.getElementById('bookType');
+  if (bookType) bookType.value = '';
+
+  if (successEl) successEl.style.display = 'block';
+  renderAdminAppointments();
 }
 
-// ── ADMIN LOGIN ──
-document.getElementById('adminLoginBtn').onclick = (e) => {
+// ── ADMIN LOGIN MODAL ──────────────────────
+document.getElementById('adminLoginBtn')?.addEventListener('click', (e) => {
   e.preventDefault();
-  if (isAdmin) { scrollToAdmin(); return; }
   document.getElementById('loginModal').classList.add('show');
-  setTimeout(() => document.getElementById('loginUser').focus(), 100);
-};
+});
 
 function closeLoginModal() {
   document.getElementById('loginModal').classList.remove('show');
   document.getElementById('loginError').style.display = 'none';
 }
 
+document.getElementById('loginModal')?.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('loginModal')) closeLoginModal();
+});
+
 function doLogin() {
-  const u = document.getElementById('loginUser').value;
-  const p = document.getElementById('loginPass').value;
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    isAdmin = true;
+  const user = document.getElementById('loginUser')?.value;
+  const pass = document.getElementById('loginPass')?.value;
+
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
     closeLoginModal();
     document.getElementById('admin').style.display = 'block';
+    document.getElementById('admin').scrollIntoView({ behavior: 'smooth' });
     renderAdminSlots();
     renderAdminAppointments();
-    scrollToAdmin();
-    document.getElementById('adminLoginBtn').textContent = 'Admin ✓';
   } else {
     document.getElementById('loginError').style.display = 'block';
   }
 }
 
 function logoutAdmin() {
-  isAdmin = false;
   document.getElementById('admin').style.display = 'none';
-  document.getElementById('adminLoginBtn').textContent = 'Admin';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function scrollToAdmin() {
-  document.getElementById('admin').scrollIntoView({ behavior: 'smooth' });
-}
-
-// ── ADMIN AVAILABILITY ──
+// ── ADMIN: ADD TIME FIELD ──────────────────
 function addTimeField() {
-  const c = document.getElementById('timesContainer');
-  const inp = document.createElement('input');
-  inp.type = 'time';
-  inp.className = 'adminTime';
-  inp.style.marginBottom = '0.5rem';
-  c.appendChild(inp);
+  const container = document.getElementById('timesContainer');
+  const input = document.createElement('input');
+  input.type = 'time';
+  input.className = 'adminTime';
+  input.style.marginBottom = '0.5rem';
+  container.appendChild(input);
 }
 
+// ── ADMIN: SAVE AVAILABILITY ───────────────
 function saveAvailability() {
-  const date = document.getElementById('adminDate').value;
-  if (!date) { alert('Selecteer een datum.'); return; }
-  const times = [...document.querySelectorAll('.adminTime')]
-    .map(i => i.value).filter(v => v);
-  if (times.length === 0) { alert('Voeg minimaal één tijd toe.'); return; }
-  availability[date] = [...new Set([...(availability[date] || []), ...times])].sort();
-  renderSlots();
-  renderAdminSlots();
+  const date = document.getElementById('adminDate')?.value;
+  if (!date) { alert('Selecteer een datum'); return; }
+
+  const timeInputs = document.querySelectorAll('.adminTime');
+  const times = Array.from(timeInputs).map(i => i.value).filter(Boolean).sort();
+  if (times.length === 0) { alert('Voeg minstens één tijd toe'); return; }
+
+  const slots = getSlots();
+  const existing = slots[date] || [];
+  slots[date] = [...new Set([...existing, ...times])].sort();
+  saveSlots(slots);
+
   document.getElementById('adminDate').value = '';
-  document.querySelectorAll('.adminTime').forEach((el, i) => { if (i > 0) el.remove(); else el.value = ''; });
+  document.querySelectorAll('.adminTime').forEach((el, i) => {
+    if (i === 0) el.value = '';
+    else el.remove();
+  });
+
+  renderAdminSlots();
+  renderSlots();
 }
 
+// ── ADMIN: RENDER SLOTS ────────────────────
 function renderAdminSlots() {
   const list = document.getElementById('adminSlotList');
-  const keys = Object.keys(availability).sort();
-  if (keys.length === 0) { list.innerHTML = '<li style="color:rgba(250,246,240,0.3);font-style:italic">Geen slots</li>'; return; }
-  list.innerHTML = keys.map(date => {
-    const dateObj = new Date(date + 'T12:00:00');
-    const dayStr = dateObj.toLocaleDateString('nl-NL', { day:'numeric', month:'short' });
-    return `<li>
-      <span>${dayStr}: ${availability[date].join(', ')}</span>
-      <button class="btn-danger" onclick="deleteDay('${date}')">✕</button>
-    </li>`;
-  }).join('');
-}
+  if (!list) return;
 
-function deleteDay(date) {
-  if (confirm(`Verwijder alle slots op ${date}?`)) {
-    delete availability[date];
-    renderSlots();
-    renderAdminSlots();
+  const slots = getSlots();
+  const dates = Object.keys(slots).sort();
+
+  if (dates.length === 0) {
+    list.innerHTML = '<li style="color:rgba(250,246,240,0.3);font-style:italic">Geen slots opgeslagen</li>';
+    return;
   }
+
+  list.innerHTML = dates.map(date => `
+    <li>
+      <span><strong>${formatDate(date)}</strong><br>
+      <span style="opacity:0.6;font-size:0.75rem">${slots[date].join(', ')}</span></span>
+      <button class="btn-danger" onclick="deleteSlotDate('${date}')">✕ Verwijder</button>
+    </li>`).join('');
 }
 
-// ── ADMIN APPOINTMENTS ──
+function deleteSlotDate(date) {
+  if (!confirm(`Verwijder alle tijden voor ${formatDate(date)}?`)) return;
+  const slots = getSlots();
+  delete slots[date];
+  saveSlots(slots);
+  renderAdminSlots();
+  renderSlots();
+}
+
+// ── ADMIN: RENDER APPOINTMENTS ─────────────
 function renderAdminAppointments() {
   const tbody = document.getElementById('adminAppointmentsTbody');
-  if (appointments.length === 0) {
+  if (!tbody) return;
+
+  const appts = getAppointments();
+
+  if (appts.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="color:rgba(250,246,240,0.3);font-style:italic;text-align:center;padding:1.5rem">Nog geen afspraken</td></tr>';
     return;
   }
-  tbody.innerHTML = appointments.map(a => {
-    const dateObj = new Date(a.date + 'T12:00:00');
-    const dayStr = dateObj.toLocaleDateString('nl-NL', { day:'numeric', month:'short', year:'numeric' });
-    return `<tr>
-      <td><strong>${a.name}</strong></td>
-      <td>${dayStr}<br>${a.time}</td>
-      <td style="font-size:0.72rem">${a.email}<br>${a.phone}</td>
-      <td style="font-size:0.72rem">${a.type}</td>
-      <td><span class="badge-status badge-new">Nieuw</span></td>
-    </tr>`;
-  }).join('');
+
+  const sorted = [...appts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  tbody.innerHTML = sorted.map(a => `
+    <tr>
+      <td>${a.name}</td>
+      <td>${formatDate(a.date)}<br><span style="opacity:0.6">${a.time}</span></td>
+      <td>${a.email}<br><span style="opacity:0.6">${a.phone}</span></td>
+      <td>${a.type}</td>
+      <td><span class="badge-status badge-new">${a.status}</span></td>
+    </tr>`).join('');
 }
 
-// ── SCROLL ANIMATION ──
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.1 });
-document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-// ── INIT ──
-renderSlots();
-
-</script>
+// ── INIT ───────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initScrollAnimations();
+  renderSlots();
+});

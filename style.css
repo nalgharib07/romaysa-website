@@ -22,12 +22,12 @@ body {
   letter-spacing: 0.02em;
 }
 .image-area {
-  width: 300px;        
-  height: 200px;       
-  background-image: url('logo.png');
-  background-size: cover;       
-  background-position: center;  
-  background-repeat: no-repeat; 
+      margin: 0; /* remove default spacing */
+      height: 100vh; /* full viewport height */
+      background-image: url('logo.png'); /* your image */
+      background-size: cover; /* scale image to cover whole area */
+      background-position: center; /* center it */
+      background-repeat: no-repeat; /* don’t repeat it */
 }
 
 /* ── NAV ── */

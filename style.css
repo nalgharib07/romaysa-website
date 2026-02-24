@@ -111,8 +111,8 @@ nav {
 
 /* ── HERO ── */
 .hero {
-  background: url("logo.jpg") no-repeat center; /* center the image */
-  background-size: 50% auto;                    /* smaller width, height scales automatically */
+  background: url("logo.jpg") no-repeat center;
+  background-size: 40% auto; /* smaller logo */
   min-height: 80vh;
   display: flex;
   align-items: center;

@@ -1,381 +1,691 @@
-/* ══════════════════════════════════════════
-   Henna by Romaysa — script.js
-   Database: Supabase | Emails: EmailJS
-══════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400&display=swap');
 
-const SUPABASE_URL = 'https://tcwuqxpwrtnxewfnpwzn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjd3VxeHB3cnRueGV3Zm5wd3puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTgyNTMsImV4cCI6MjA4NzUzNDI1M30.6uSOTsSoODDQ24fRFbmfjYDMa5NbaPKMC28x5ABayEU';
-// Lightweight Supabase client (no npm needed)
-const sb = {
-  headers: {
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-  },
-  async get(table, query = '') {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-      headers: this.headers
-    });
-    return res.json();
-  },
-  async post(table, body) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: { ...this.headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify(body)
-    });
-    return res.json();
-  },
-  async patch(table, id, body) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: { ...this.headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify(body)
-    });
-    return res.json();
-  },
-  async delete(table, id) {
-    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: this.headers
-    });
-  }
-};
-
-
-const EMAILJS_SERVICE_ID  = 'service_ca3aat6';   
-const EMAILJS_TEMPLATE_ID = 'template_dgmwras'; 
-const EMAILJS_PUBLIC_KEY  = 'OBXg9Iq7PHs9H2qi4';  
-
-// ── CREDENTIALS ────────────────────────────
-const ADMIN_USER = 'Romaysa';
-const ADMIN_PASS = 'Henna2026';
-
-// ── STATE ──────────────────────────────────
-let selectedSlot = null; // { date, time }
-
-// ── SCROLL ANIMATIONS ──────────────────────
-function initScrollAnimations() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+:root {
+  --cream: #f9f6f3;
+  --warm: #f3e8e2;
+  --terracotta: #b89b8c;
+  --deep: #8c735c;
+  --gold: #c1bcae;
+  --rose: #5a4a42;
+  --text: #3c2e26;
+  --muted: #9b7f70;
 }
 
-// ── FORMAT DATE NICELY ─────────────────────
-function formatDate(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Josefin Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text);
 }
 
-// ════════════════════════════════════════════
-// ██  PUBLIC BOOKING VIEW
-// ════════════════════════════════════════════
-
-async function renderSlots() {
-  const display = document.getElementById('slotsDisplay');
-  if (!display) return;
-
-  display.innerHTML = '<p class="no-slots">Beschikbaarheid laden...</p>';
-
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-
-    const [slotsData, appts] = await Promise.all([
-      sb.get('slots', `date=gte.${today}&order=date.asc`),
-      sb.get('appointments', 'select=date,time')
-    ]);
-
-    const bookedKeys = new Set((appts || []).map(a => `${a.date}__${a.time}`));
-
-    if (!slotsData || slotsData.length === 0) {
-      display.innerHTML = '<p class="no-slots">Er zijn momenteel geen beschikbare tijden. Kom binnenkort terug!</p>';
-      return;
-    }
-
-    display.innerHTML = slotsData.map(slot => {
-      const times = slot.times || [];
-      if (times.length === 0) return '';
-
-      const timeButtons = times.map(time => {
-        const key = `${slot.date}__${time}`;
-        const isBooked = bookedKeys.has(key);
-        return `<button
-          class="slot-btn ${isBooked ? 'booked' : ''}"
-          onclick="${isBooked ? '' : `selectSlot('${slot.date}','${time}')`}"
-          ${isBooked ? 'disabled title="Niet beschikbaar"' : ''}
-        >${time}</button>`;
-      }).join('');
-
-      return `
-        <div class="slot-day">
-          <div class="slot-date">${formatDate(slot.date)}</div>
-          <div class="slot-times">${timeButtons}</div>
-        </div>`;
-    }).join('');
-
-  } catch (err) {
-    console.error('renderSlots error:', err);
-    display.innerHTML = '<p class="no-slots">Kon beschikbaarheid niet laden. Probeer opnieuw.</p>';
-  }
+/* ── NAV ── */
+nav {
+  background: var(--deep);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-function selectSlot(date, time) {
-  selectedSlot = { date, time };
-  document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
-  event.target.classList.add('selected');
-  const display = document.getElementById('selectedSlotDisplay');
-  if (display) display.textContent = `✦ ${formatDate(date)} om ${time}`;
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  padding: 1rem 0;
+  cursor: pointer;
 }
 
-// ── SUBMIT BOOKING ─────────────────────────
-async function submitBooking() {
-  const name  = document.getElementById('bookName')?.value.trim();
-  const email = document.getElementById('bookEmail')?.value.trim();
-  const phone = document.getElementById('bookPhone')?.value.trim();
-  const type  = document.getElementById('bookType')?.value;
-
-  const successEl = document.getElementById('bookSuccess');
-  const errorEl   = document.getElementById('bookError');
-  const submitBtn = document.querySelector('#boeken .btn-primary');
-
-  if (successEl) successEl.style.display = 'none';
-  if (errorEl)   errorEl.style.display   = 'none';
-
-  if (!name || !email || !phone || !selectedSlot) {
-    if (errorEl) errorEl.style.display = 'block';
-    return;
-  }
-
-  // Disable button during submit
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Bezig...'; }
-
-  try {
-    // 1. Save to Supabase
-    await sb.post('appointments', {
-      name,
-      email,
-      phone,
-      type: type || '—',
-      date: selectedSlot.date,
-      time: selectedSlot.time,
-      status: 'Nieuw'
-    });
-
-    // 2. Send confirmation email via EmailJS
-    await sendConfirmationEmail({
-      to_name: name,
-      to_email: email,
-      appointment_date: formatDate(selectedSlot.date),
-      appointment_time: selectedSlot.time,
-      appointment_type: type || 'Niet opgegeven'
-    });
-
-    // 3. Reset form
-    selectedSlot = null;
-    const slotDisplay = document.getElementById('selectedSlotDisplay');
-    if (slotDisplay) slotDisplay.textContent = '← Selecteer eerst een tijd';
-    ['bookName','bookEmail','bookPhone'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    const bookType = document.getElementById('bookType');
-    if (bookType) bookType.value = '';
-    document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
-
-    if (successEl) successEl.style.display = 'block';
-    await renderSlots();
-    await renderAdminAppointments();
-
-  } catch (err) {
-    console.error('Booking error:', err);
-    if (errorEl) {
-      errorEl.textContent = 'Er ging iets mis. Probeer opnieuw of neem contact op.';
-      errorEl.style.display = 'block';
-    }
-  } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Bevestig Afspraak'; }
-  }
+.nav-logo span {
+  color: var(--rose);
+  font-style: italic;
 }
 
-// ── SEND EMAIL VIA EMAILJS ─────────────────
-function sendConfirmationEmail(params) {
-  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params, EMAILJS_PUBLIC_KEY);
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
 }
 
-// ════════════════════════════════════════════
-// ██  ADMIN PANEL
-// ════════════════════════════════════════════
-
-document.getElementById('adminLoginBtn')?.addEventListener('click', (e) => {
-  e.preventDefault();
-  document.getElementById('loginModal').classList.add('show');
-});
-
-function closeLoginModal() {
-  document.getElementById('loginModal').classList.remove('show');
-  document.getElementById('loginError').style.display = 'none';
+.nav-links a {
+  color: var(--cream);
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  position: relative;
+  transition: opacity 0.25s, color 0.25s;
 }
 
-document.getElementById('loginModal')?.addEventListener('click', (e) => {
-  if (e.target === document.getElementById('loginModal')) closeLoginModal();
-});
-
-function doLogin() {
-  const user = document.getElementById('loginUser')?.value;
-  const pass = document.getElementById('loginPass')?.value;
-
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    closeLoginModal();
-    document.getElementById('admin').style.display = 'block';
-    document.getElementById('admin').scrollIntoView({ behavior: 'smooth' });
-    renderAdminSlots();
-    renderAdminAppointments();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-  }
+.nav-links a::after {
+  content: '';
+  display: block;
+  height: 2px;
+  width: 0;
+  background: var(--gold);
+  transition: width 0.3s ease;
+  position: absolute;
+  bottom: -4px;
+  left: 0;
 }
 
-function logoutAdmin() {
-  document.getElementById('admin').style.display = 'none';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+.nav-links a:hover { opacity: 1; color: var(--gold); }
+.nav-links a:hover::after { width: 100%; }
+
+.btn-nav {
+  background: var(--terracotta);
+  color: white !important;
+  padding: 0.55rem 1.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: background 0.25s;
+  text-decoration: none;
 }
 
-// ── ADD TIME FIELD ──────────────────────────
-function addTimeField() {
-  const container = document.getElementById('timesContainer');
-  const input = document.createElement('input');
-  input.type = 'time';
-  input.className = 'adminTime';
-  input.style.marginBottom = '0.5rem';
-  container.appendChild(input);
+.btn-nav:hover { background: var(--rose) !important; }
+
+@media (max-width: 768px) {
+  nav { padding: 0 1rem; }
+  .nav-links { gap: 1.5rem; }
 }
 
-// ── SAVE AVAILABILITY ──────────────────────
-async function saveAvailability() {
-  const date = document.getElementById('adminDate')?.value;
-  if (!date) { alert('Selecteer een datum'); return; }
-
-  const timeInputs = document.querySelectorAll('.adminTime');
-  const newTimes = Array.from(timeInputs).map(i => i.value).filter(Boolean).sort();
-  if (newTimes.length === 0) { alert('Voeg minstens één tijd toe'); return; }
-
-  try {
-    // Check if date already exists
-    const existing = await sb.get('slots', `date=eq.${date}`);
-
-    if (existing && existing.length > 0) {
-      // Merge times
-      const merged = [...new Set([...(existing[0].times || []), ...newTimes])].sort();
-      await sb.patch('slots', existing[0].id, { times: merged });
-    } else {
-      // New date
-      await sb.post('slots', { date, times: newTimes });
-    }
-
-    // Reset inputs
-    document.getElementById('adminDate').value = '';
-    document.querySelectorAll('.adminTime').forEach((el, i) => {
-      if (i === 0) el.value = '';
-      else el.remove();
-    });
-
-    await renderAdminSlots();
-    await renderSlots();
-
-  } catch (err) {
-    console.error('saveAvailability error:', err);
-    alert('Kon niet opslaan. Controleer je Supabase instellingen.');
-  }
+/* ── HERO ── */
+.hero {
+  background-color: var(--warm);
+  background-image: url("logo.jpg");
+  background-repeat: no-repeat;
+  background-position: center 38%;
+  background-size: 18% auto;
+  min-height: 80vh;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5rem;
+  position: relative;
 }
 
-// ── ADMIN: RENDER SLOTS ────────────────────
-async function renderAdminSlots() {
-  const list = document.getElementById('adminSlotList');
-  if (!list) return;
-
-  list.innerHTML = '<li style="opacity:0.5;font-style:italic">Laden...</li>';
-
-  try {
-    const slots = await sb.get('slots', 'order=date.asc');
-
-    if (!slots || slots.length === 0) {
-      list.innerHTML = '<li style="color:rgba(250,246,240,0.3);font-style:italic">Geen slots opgeslagen</li>';
-      return;
-    }
-
-    list.innerHTML = slots.map(slot => `
-      <li>
-        <span>
-          <strong>${formatDate(slot.date)}</strong><br>
-          <span style="opacity:0.6;font-size:0.75rem">${(slot.times || []).join(', ')}</span>
-        </span>
-        <button class="btn-danger" onclick="deleteSlotDate(${slot.id}, '${slot.date}')">✕ Verwijder</button>
-      </li>`).join('');
-
-  } catch (err) {
-    list.innerHTML = '<li style="color:red;">Fout bij laden slots.</li>';
-  }
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(196,113,74,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(184,147,58,0.15) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
 }
 
-async function deleteSlotDate(id, date) {
-  if (!confirm(`Verwijder alle tijden voor ${formatDate(date)}?`)) return;
-  await sb.delete('slots', id);
-  await renderAdminSlots();
-  await renderSlots();
+/* ── BUTTONS ── */
+.btn-primary {
+  display: inline-block;
+  background: var(--rose);
+  color: #fff;
+  padding: 0.9rem 2.5rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
 }
 
-// ── ADMIN: RENDER APPOINTMENTS ─────────────
-async function renderAdminAppointments() {
-  const tbody = document.getElementById('adminAppointmentsTbody');
-  if (!tbody) return;
+.btn-primary:hover { background: var(--terracotta); }
 
-  tbody.innerHTML = '<tr><td colspan="6" style="color:rgba(250,246,240,0.3);font-style:italic;text-align:center;padding:1.5rem">Laden...</td></tr>';
+/* ── SECTIONS ── */
+section { padding: 5rem 2rem; }
+.container { max-width: 1100px; margin: 0 auto; }
 
-  try {
-    const appts = await sb.get('appointments', 'order=created_at.desc');
-
-    if (!appts || appts.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:rgba(250,246,240,0.3);font-style:italic;text-align:center;padding:1.5rem">Nog geen afspraken</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = appts.map(a => `
-      <tr>
-        <td>${a.name}</td>
-        <td>${formatDate(a.date)}<br><span style="opacity:0.6">${a.time}</span></td>
-        <td>${a.email}<br><span style="opacity:0.6">${a.phone}</span></td>
-        <td>${a.type}</td>
-        <td><span class="badge-status badge-new">${a.status}</span></td>
-        <td>
-          <button class="btn-danger" onclick="deleteAppointment(${a.id}, '${a.name}')" style="font-size:0.75rem;padding:0.3rem 0.6rem">
-            ✕ Verwijder
-          </button>
-        </td>
-      </tr>`).join('');
-
-  } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="6" style="color:red;text-align:center;padding:1rem">Fout bij laden afspraken.</td></tr>';
-  }
+.section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  margin-bottom: 0.5rem;
 }
 
-async function deleteAppointment(id, name) {
-  if (!confirm(`Weet je zeker dat je de afspraak van ${name} wilt verwijderen?`)) return;
-  await sb.delete('appointments', id);
-  await renderAdminAppointments();
-  await renderSlots(); // refresh booked status
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 300;
+  color: var(--deep);
+  margin-bottom: 1rem;
 }
 
-// ── INIT ───────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // Load EmailJS SDK dynamically
-  const emailjsScript = document.createElement('script');
-  emailjsScript.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-  emailjsScript.onload = () => emailjs.init(EMAILJS_PUBLIC_KEY);
-  document.head.appendChild(emailjsScript);
+.divider {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--terracotta), var(--gold));
+  margin-bottom: 2rem;
+}
 
-  initScrollAnimations();
-  renderSlots();
-});
+/* ── PRIJZEN ── */
+#prijzen { background: var(--warm); }
+
+.prices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.price-card {
+  background: white;
+  border: 1px solid rgba(196,113,74,0.15);
+  padding: 2rem;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.price-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(61,35,20,0.1); }
+
+.price-card.featured {
+  border-color: var(--gold);
+  background: var(--deep);
+}
+
+.price-card.featured .price-name { color: var(--gold); }
+.price-card.featured .price-desc { color: rgba(250,246,240,0.7); }
+.price-card.featured .price-amount { color: var(--rose); }
+
+.price-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: var(--deep);
+  margin-bottom: 0.5rem;
+}
+
+.price-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.price-amount {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  color: var(--terracotta);
+  font-weight: 300;
+}
+
+.price-amount span { font-size: 1rem; }
+
+/* ── BOOKING ── */
+#boeken { background: var(--cream); }
+
+.booking-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+  margin-top: 3rem;
+}
+
+@media(max-width:768px) { .booking-wrap { grid-template-columns: 1fr; } }
+
+.calendar-slots h3,
+.booking-form h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  color: var(--deep);
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+.slot-day { margin-bottom: 1.5rem; }
+
+.slot-date {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.slot-times { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.slot-btn {
+  border: 1px solid rgba(196,113,74,0.4);
+  background: transparent;
+  color: var(--terracotta);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-family: 'Josefin Sans', sans-serif;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.slot-btn:hover, .slot-btn.selected {
+  background: var(--terracotta);
+  color: white;
+  border-color: var(--terracotta);
+}
+
+.slot-btn.booked {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.no-slots {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.form-group { margin-bottom: 1.2rem; }
+
+.form-group label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  border: 1px solid rgba(122,92,72,0.3);
+  background: transparent;
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  font-family: 'Josefin Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+}
+
+.form-group input:focus,
+.form-group select:focus { border-color: var(--terracotta); }
+
+.selected-slot-display {
+  background: linear-gradient(135deg, rgba(196,113,74,0.08), rgba(184,147,58,0.08));
+  border: 1px solid rgba(196,113,74,0.25);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--terracotta);
+  letter-spacing: 0.05em;
+  min-height: 2.5rem;
+}
+
+.msg-success {
+  background: rgba(80,150,80,0.1);
+  border: 1px solid rgba(80,150,80,0.3);
+  color: #3a6e3a;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  display: none;
+}
+
+.msg-error {
+  background: rgba(196,113,74,0.1);
+  border: 1px solid rgba(196,113,74,0.3);
+  color: var(--terracotta);
+  padding: 1rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  display: none;
+}
+
+/* ── ADMIN PANEL ── */
+#admin { display: none; background: #1a0f08; padding: 4rem 2rem; }
+.admin-container { max-width: 1000px; margin: 0 auto; }
+
+.admin-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  color: var(--gold);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 300;
+}
+
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+@media(max-width:768px) { .admin-grid { grid-template-columns: 1fr; } }
+
+.admin-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(184,147,58,0.2);
+  padding: 1.5rem;
+}
+
+.admin-card h3 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--gold);
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-card label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(250,246,240,0.5);
+  margin-bottom: 0.4rem;
+  margin-top: 0.8rem;
+}
+
+.admin-card input,
+.admin-card select {
+  width: 100%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(184,147,58,0.3);
+  color: var(--cream);
+  padding: 0.7rem 1rem;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.admin-card input:focus { border-color: var(--gold); }
+
+.btn-admin {
+  background: linear-gradient(135deg, var(--gold), var(--terracotta));
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 1rem;
+  width: 100%;
+  transition: opacity 0.2s;
+  font-weight: 300;
+}
+
+.btn-admin:hover { opacity: 0.85; }
+
+.btn-danger {
+  background: rgba(180,60,60,0.7);
+  color: white;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.65rem;
+  cursor: pointer;
+  font-family: 'Josefin Sans', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+.slot-list { list-style: none; margin-top: 0.5rem; }
+
+.slot-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.82rem;
+  color: var(--cream);
+  opacity: 0.85;
+}
+
+.appointments-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+
+.appointments-table th {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(184,147,58,0.2);
+}
+
+.appointments-table td {
+  font-size: 0.78rem;
+  color: rgba(250,246,240,0.8);
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: top;
+}
+
+.appointments-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+.badge-new { background: rgba(80,150,80,0.2); color: #7dcc7d; font-size: 0.6rem; padding: 0.2rem 0.5rem; }
+
+.admin-logout { margin-top: 2rem; text-align: right; }
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid rgba(250,246,240,0.2);
+  color: rgba(250,246,240,0.5);
+  padding: 0.5rem 1.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: 'Josefin Sans', sans-serif;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover { border-color: var(--rose); color: var(--rose); }
+
+/* ── LOGIN MODAL ── */
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,15,8,0.85);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-bg.show { display: flex; }
+
+.modal {
+  background: var(--deep);
+  border: 1px solid rgba(184,147,58,0.3);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+}
+
+.modal h2 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--gold);
+  font-size: 1.8rem;
+  font-weight: 300;
+  margin-bottom: 0.3rem;
+}
+
+.modal p { font-size: 0.75rem; color: rgba(250,246,240,0.5); margin-bottom: 2rem; }
+
+.modal label {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(250,246,240,0.5);
+  margin-bottom: 0.4rem;
+  margin-top: 1rem;
+}
+
+.modal input {
+  width: 100%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(184,147,58,0.3);
+  color: var(--cream);
+  padding: 0.8rem 1rem;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modal input:focus { border-color: var(--gold); }
+.modal .btn-admin { margin-top: 1.5rem; }
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: rgba(250,246,240,0.4);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close:hover { color: var(--rose); }
+
+.login-error {
+  color: var(--rose);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid #A9A9A9;
+  background: var(--cream);
+  color: var(--text);
+  padding: 4rem 2rem 2rem;
+}
+
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+@media(max-width:640px) {
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+.footer-brand .brand-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--deep);
+  margin-bottom: 1rem;
+}
+
+.footer-brand p {
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: var(--text);
+  max-width: 300px;
+  opacity: 0.8;
+}
+
+footer h4 {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.2rem;
+}
+
+footer ul { list-style: none; }
+footer ul li { margin-bottom: 0.7rem; }
+
+footer ul li a {
+  text-decoration: none;
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0.75;
+  transition: color 0.3s, opacity 0.3s;
+}
+
+footer ul li a:hover { color: var(--deep); opacity: 1; }
+
+.social-links { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.5rem; }
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(140,115,85,0.2);
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  transition: all 0.3s;
+}
+
+.social-link:hover { border-color: var(--deep); color: var(--deep); background: rgba(140,115,85,0.05); }
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+  opacity: 0.8;
+  margin-bottom: 0.8rem;
+}
+
+.contact-item span { color: var(--muted); font-size: 1rem; }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: 0 auto;
+  border-top: 1px solid #A9A9A9;
+  padding-top: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-bottom p { font-size: 0.75rem; color: var(--text); opacity: 0.6; }
+
+@media(max-width:640px) {
+  .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+}
+
+/* ── SCROLL ANIMATION ── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease-out;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

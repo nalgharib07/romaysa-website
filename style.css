@@ -15,11 +15,6 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 
-body {
-  background: url("logo.png") no-repeat center;
-  background-size: 150px auto; /* width 150px, height scales automatically */
-}
-
 
 /* ── NAV ── */
 nav {
@@ -116,7 +111,8 @@ nav {
 
 /* ── HERO ── */
 .hero {
-  background: url("logo.jpg") center/cover no-repeat;
+  background: url("logo.jpg") no-repeat center; /* center the image */
+  background-size: 50% auto;                    /* smaller width, height scales automatically */
   min-height: 80vh;
   display: flex;
   align-items: center;
@@ -124,7 +120,6 @@ nav {
   text-align: center;
   position: relative;
   overflow: hidden;
-
 }
 
 .hero::before {

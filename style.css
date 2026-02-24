@@ -123,16 +123,14 @@ nav {
 
 /* ── HERO ── */
 .hero {
-background: var(--deep);
-min-height: 80vh;
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-
-position: relative;
-
-overflow: hidden;
+  background: url("logo.jpg") center/cover no-repeat;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 
 }
 

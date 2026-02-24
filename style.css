@@ -107,15 +107,6 @@ nav {
   overflow: hidden;
 }
 
-/* Warm dark overlay so button is readable over image */
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(36, 20, 10, 0.50);
-  pointer-events: none;
-  z-index: 0;
-}
 
 /* Keep button above overlay */
 .hero .btn-primary {

@@ -113,31 +113,30 @@ nav {
 
 /* ── HERO ── */
 .hero {
-  background: url("logo.jpg") no-repeat center;
-  background-size: 18% auto; /* smaller logo */
+  background-color: var(--warm);
+  background-image: url("logo.jpg");
+  background-repeat: no-repeat;
+  background-position: center 38%;
+  background-size: 18% auto;
   min-height: 80vh;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 5rem;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
 .hero::before {
-
-content: '';
-
-position: absolute;
-
-inset: 0;
-
-background:
-
-radial-gradient(ellipse 60% 40% at 20% 80%, rgba(196,113,74,0.25) 0%, transparent 60%),
-
-radial-gradient(ellipse 50% 60% at 80% 20%, rgba(184,147,58,0.2) 0%, transparent 60%);
-
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(196,113,74,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(184,147,58,0.15) 0%, transparent 60%);
+  pointer-events: none; /* so it never blocks clicks */
+  z-index: 0;
 }
 
 .hero-mandala {
@@ -224,7 +223,7 @@ line-height: 1.8;
   font-family: 'Josefin Sans', sans-serif;
   font-weight: 400;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .btn-primary:hover {

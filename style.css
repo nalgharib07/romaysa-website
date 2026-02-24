@@ -9,12 +9,10 @@
   --rose: #5a4a42;
   --text: #3c2e26;
   --muted: #9b7f70;
-  /* FIX: missing variables used in footer */
   --bronze: #8c7355;
   --taupe: #9b8f7f;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'Josefin Sans', sans-serif;

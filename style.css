@@ -22,19 +22,6 @@ body {
   letter-spacing: 0.02em;
 }
 
-/* ── HENNA BORDER (was missing) ── */
-.henna-border {
-  height: 6px;
-  background: linear-gradient(90deg,
-    var(--terracotta) 0%,
-    var(--gold) 25%,
-    var(--deep) 50%,
-    var(--gold) 75%,
-    var(--terracotta) 100%
-  );
-  position: relative;
-  z-index: 101;
-}
 
 /* ── NAV ── */
 nav {
@@ -716,4 +703,17 @@ footer ul li a:hover { color: var(--bronze); opacity: 1; }
 .fade-up.visible {
   opacity: 1;
   transform: translateY(0);
+}
+/* ── HENNA BORDER ── */
+.henna-border {
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--terracotta) 0%,
+    var(--gold) 25%,
+    var(--deep) 50%,
+    var(--gold) 75%,
+    var(--terracotta) 100%
+  );
+  position: relative;
+  z-index: 101;
 }

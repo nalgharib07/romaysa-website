@@ -3,40 +3,6 @@
    Database: Supabase | Emails: EmailJS
 ══════════════════════════════════════════ */
 
-// ════════════════════════════════════════════
-// ██  STEP 1 — SUPABASE SETUP
-// ════════════════════════════════════════════
-// 1. Go to https://supabase.com → Sign up (free)
-// 2. Click "New Project" → give it a name like "henna-romaysa"
-// 3. Wait for it to load, then go to: Settings → API
-// 4. Copy your "Project URL" and "anon public" key below
-// 5. Then go to: Table Editor → New Table
-//    Create two tables:
-//
-//  TABLE 1 — "slots"
-//    Columns:
-//      id          (int8, primary key, auto-increment) ✓ default
-//      date        (text, not null)
-//      times       (text[], not null)   ← this is an array of times
-//      created_at  (timestamptz)        ✓ default
-//
-//  TABLE 2 — "appointments"
-//    Columns:
-//      id          (int8, primary key, auto-increment) ✓ default
-//      name        (text, not null)
-//      email       (text, not null)
-//      phone       (text, not null)
-//      type        (text)
-//      date        (text, not null)
-//      time        (text, not null)
-//      status      (text, default: 'Nieuw')
-//      created_at  (timestamptz)        ✓ default
-//
-// 6. For both tables: go to Authentication → Policies
-//    Click "Enable RLS" then add policy → "Allow all" for now
-//    (or just disable RLS for simplicity during development)
-// ═══════════════════════════════════════════
-
 const SUPABASE_URL = 'https://tcwuqxpwrtnxewfnpwzn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjd3VxeHB3cnRueGV3Zm5wd3puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTgyNTMsImV4cCI6MjA4NzUzNDI1M30.6uSOTsSoODDQ24fRFbmfjYDMa5NbaPKMC28x5ABayEU';
 // Lightweight Supabase client (no npm needed)

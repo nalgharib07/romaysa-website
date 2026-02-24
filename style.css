@@ -92,16 +92,20 @@ nav {
 }
 
 /* ── HERO ── */
-.hero {
+.hero{
   background-image: url("logo.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  background-color: var(--deep); /* fallback colour */
+  background-color: var(--deep); 
   min-height: 80vh;
+
   display: flex;
-  align-items: center;
+  align-items: flex-start;   
   justify-content: center;
+
+  padding-top: 300px;        
+
   text-align: center;
   position: relative;
   overflow: hidden;

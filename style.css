@@ -14,6 +14,8 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html { scroll-behavior: smooth; }
+
 
 
 /* ── NAV ── */
@@ -26,8 +28,8 @@ nav {
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* subtle depth */
-    backdrop-filter: blur(8px); /* glassy effect if background is semi-transparent */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
     transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -112,7 +114,7 @@ nav {
 /* ── HERO ── */
 .hero {
   background: url("logo.jpg") no-repeat center;
-  background-size: 40% auto; /* smaller logo */
+  background-size: 18% auto; /* smaller logo */
   min-height: 80vh;
   display: flex;
   align-items: center;
@@ -221,6 +223,8 @@ line-height: 1.8;
   transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   font-family: 'Josefin Sans', sans-serif;
   font-weight: 400;
+  position: relative;
+  z-index: 1;
 }
 
 .btn-primary:hover {

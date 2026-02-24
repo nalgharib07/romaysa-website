@@ -18,7 +18,7 @@
 body {
 font-family: 'Josefin Sans', sans-serif;
 background: url("logo.png");
-background-size: cover;       /* fills entire screen */
+background-size: contain;       /* fills entire screen */
 background-position: center;  /* keeps image centered */
 background-repeat: no-repeat;
 color: var(--text);

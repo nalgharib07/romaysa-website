@@ -118,8 +118,8 @@ function submitBooking() {
 }
 
 // ── ADMIN LOGIN / LOGOUT ──
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'henna2026';
+const ADMIN_USER = 'Romaysa';
+const ADMIN_PASS = 'Henna2026';
 
 function doLogin() {
   const user = document.getElementById('loginUser').value;

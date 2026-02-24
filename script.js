@@ -113,9 +113,9 @@ const sb = {
 // 4. Go to "Account" → copy your Public Key → paste below
 // ════════════════════════════════════════════
 
-const EMAILJS_SERVICE_ID  = 'JOUW_SERVICE_ID_HIER';   // ← vervang dit
-const EMAILJS_TEMPLATE_ID = 'JOUW_TEMPLATE_ID_HIER';  // ← vervang dit
-const EMAILJS_PUBLIC_KEY  = 'JOUW_PUBLIC_KEY_HIER';   // ← vervang dit
+const EMAILJS_SERVICE_ID  = 'service_ca3aat6';   // ← vervang dit
+const EMAILJS_TEMPLATE_ID = 'template_dgmwras';  // ← vervang dit
+const EMAILJS_PUBLIC_KEY  = 'OBXg9Iq7PHs9H2qi4';   // ← vervang dit
 
 // ── CREDENTIALS ────────────────────────────
 const ADMIN_USER = 'Romaysa';

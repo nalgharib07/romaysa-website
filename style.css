@@ -12,7 +12,7 @@
   --bronze: #8c7355;
   --taupe: #9b8f7f;
 }
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'Josefin Sans', sans-serif;

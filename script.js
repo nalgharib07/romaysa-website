@@ -1,27 +1,125 @@
 /* ══════════════════════════════════════════
    Henna by Romaysa — script.js
+   Database: Supabase | Emails: EmailJS
 ══════════════════════════════════════════ */
+
+// ════════════════════════════════════════════
+// ██  STEP 1 — SUPABASE SETUP
+// ════════════════════════════════════════════
+// 1. Go to https://supabase.com → Sign up (free)
+// 2. Click "New Project" → give it a name like "henna-romaysa"
+// 3. Wait for it to load, then go to: Settings → API
+// 4. Copy your "Project URL" and "anon public" key below
+// 5. Then go to: Table Editor → New Table
+//    Create two tables:
+//
+//  TABLE 1 — "slots"
+//    Columns:
+//      id          (int8, primary key, auto-increment) ✓ default
+//      date        (text, not null)
+//      times       (text[], not null)   ← this is an array of times
+//      created_at  (timestamptz)        ✓ default
+//
+//  TABLE 2 — "appointments"
+//    Columns:
+//      id          (int8, primary key, auto-increment) ✓ default
+//      name        (text, not null)
+//      email       (text, not null)
+//      phone       (text, not null)
+//      type        (text)
+//      date        (text, not null)
+//      time        (text, not null)
+//      status      (text, default: 'Nieuw')
+//      created_at  (timestamptz)        ✓ default
+//
+// 6. For both tables: go to Authentication → Policies
+//    Click "Enable RLS" then add policy → "Allow all" for now
+//    (or just disable RLS for simplicity during development)
+// ═══════════════════════════════════════════
+
+const SUPABASE_URL = 'JOUW_SUPABASE_URL_HIER';        // ← vervang dit
+const SUPABASE_ANON_KEY = 'JOUW_SUPABASE_ANON_KEY_HIER'; // ← vervang dit
+
+// Lightweight Supabase client (no npm needed)
+const sb = {
+  headers: {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+  },
+  async get(table, query = '') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: this.headers
+    });
+    return res.json();
+  },
+  async post(table, body) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { ...this.headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify(body)
+    });
+    return res.json();
+  },
+  async patch(table, id, body) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { ...this.headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify(body)
+    });
+    return res.json();
+  },
+  async delete(table, id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: this.headers
+    });
+  }
+};
+
+// ════════════════════════════════════════════
+// ██  STEP 2 — EMAILJS SETUP
+// ════════════════════════════════════════════
+// 1. Go to https://www.emailjs.com → Sign up (free)
+// 2. Go to "Email Services" → Add Service → Gmail
+//    Connect your romaysahamdaoui0@gmail.com
+//    Copy the Service ID (e.g. "service_abc123") → paste below
+//
+// 3. Go to "Email Templates" → Create Template
+//    Set "To Email" field to: {{to_email}}
+//    Set "Subject" to: Bevestiging afspraak – Henna by Romaysa
+//
+//    In the body, paste this template:
+//    ─────────────────────────────────────────
+//    Hallo {{to_name}},
+//
+//    Bedankt voor je afspraak bij Henna by Romaysa! 🌿
+//
+//    Hier zijn je gegevens:
+//    📅 Datum: {{appointment_date}}
+//    🕐 Tijd: {{appointment_time}}
+//    💅 Type: {{appointment_type}}
+//
+//    We kijken ernaar uit je te verwelkomen!
+//    Mocht je vragen hebben, neem dan contact op via:
+//    📱 +31 6 12 37 76 58
+//    ✉ romaysahamdaoui0@gmail.com
+//
+//    Tot snel,
+//    Romaysa 🌸
+//    ─────────────────────────────────────────
+//    Copy the Template ID (e.g. "template_xyz789") → paste below
+//
+// 4. Go to "Account" → copy your Public Key → paste below
+// ════════════════════════════════════════════
+
+const EMAILJS_SERVICE_ID  = 'JOUW_SERVICE_ID_HIER';   // ← vervang dit
+const EMAILJS_TEMPLATE_ID = 'JOUW_TEMPLATE_ID_HIER';  // ← vervang dit
+const EMAILJS_PUBLIC_KEY  = 'JOUW_PUBLIC_KEY_HIER';   // ← vervang dit
 
 // ── CREDENTIALS ────────────────────────────
 const ADMIN_USER = 'Romaysa';
 const ADMIN_PASS = 'Henna2026';
-
-// ── DATA STORE (localStorage) ──────────────
-const STORAGE_SLOTS = 'henna_slots';
-const STORAGE_APPOINTMENTS = 'henna_appointments';
-
-function getSlots() {
-  return JSON.parse(localStorage.getItem(STORAGE_SLOTS) || '{}');
-}
-function saveSlots(data) {
-  localStorage.setItem(STORAGE_SLOTS, JSON.stringify(data));
-}
-function getAppointments() {
-  return JSON.parse(localStorage.getItem(STORAGE_APPOINTMENTS) || '[]');
-}
-function saveAppointments(data) {
-  localStorage.setItem(STORAGE_APPOINTMENTS, JSON.stringify(data));
-}
 
 // ── STATE ──────────────────────────────────
 let selectedSlot = null; // { date, time }
@@ -30,12 +128,9 @@ let selectedSlot = null; // { date, time }
 function initScrollAnimations() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
+      if (entry.isIntersecting) entry.target.classList.add('visible');
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 }
 
@@ -45,61 +140,68 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
-// ── RENDER SLOTS (public booking view) ─────
-function renderSlots() {
+// ════════════════════════════════════════════
+// ██  PUBLIC BOOKING VIEW
+// ════════════════════════════════════════════
+
+async function renderSlots() {
   const display = document.getElementById('slotsDisplay');
   if (!display) return;
 
-  const slots = getSlots();
-  const appts = getAppointments();
+  display.innerHTML = '<p class="no-slots">Beschikbaarheid laden...</p>';
 
-  const bookedKeys = new Set(appts.map(a => `${a.date}__${a.time}`));
+  try {
+    const today = new Date().toISOString().slice(0, 10);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const dates = Object.keys(slots).filter(d => d >= today).sort();
+    const [slotsData, appts] = await Promise.all([
+      sb.get('slots', `date=gte.${today}&order=date.asc`),
+      sb.get('appointments', 'select=date,time')
+    ]);
 
-  if (dates.length === 0) {
-    display.innerHTML = '<p class="no-slots">Er zijn momenteel geen beschikbare tijden. Kom binnenkort terug!</p>';
-    return;
-  }
+    const bookedKeys = new Set((appts || []).map(a => `${a.date}__${a.time}`));
 
-  display.innerHTML = dates.map(date => {
-    const times = slots[date];
-    if (!times || times.length === 0) return '';
+    if (!slotsData || slotsData.length === 0) {
+      display.innerHTML = '<p class="no-slots">Er zijn momenteel geen beschikbare tijden. Kom binnenkort terug!</p>';
+      return;
+    }
 
-    const timeButtons = times.map(time => {
-      const key = `${date}__${time}`;
-      const isBooked = bookedKeys.has(key);
-      return `<button
-        class="slot-btn ${isBooked ? 'booked' : ''}"
-        onclick="${isBooked ? '' : `selectSlot('${date}','${time}')`}"
-        ${isBooked ? 'disabled title="Niet beschikbaar"' : ''}
-      >${time}</button>`;
+    display.innerHTML = slotsData.map(slot => {
+      const times = slot.times || [];
+      if (times.length === 0) return '';
+
+      const timeButtons = times.map(time => {
+        const key = `${slot.date}__${time}`;
+        const isBooked = bookedKeys.has(key);
+        return `<button
+          class="slot-btn ${isBooked ? 'booked' : ''}"
+          onclick="${isBooked ? '' : `selectSlot('${slot.date}','${time}')`}"
+          ${isBooked ? 'disabled title="Niet beschikbaar"' : ''}
+        >${time}</button>`;
+      }).join('');
+
+      return `
+        <div class="slot-day">
+          <div class="slot-date">${formatDate(slot.date)}</div>
+          <div class="slot-times">${timeButtons}</div>
+        </div>`;
     }).join('');
 
-    return `
-      <div class="slot-day">
-        <div class="slot-date">${formatDate(date)}</div>
-        <div class="slot-times">${timeButtons}</div>
-      </div>`;
-  }).join('');
+  } catch (err) {
+    console.error('renderSlots error:', err);
+    display.innerHTML = '<p class="no-slots">Kon beschikbaarheid niet laden. Probeer opnieuw.</p>';
+  }
 }
 
-// ── SELECT A SLOT ──────────────────────────
 function selectSlot(date, time) {
   selectedSlot = { date, time };
-
   document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
   event.target.classList.add('selected');
-
   const display = document.getElementById('selectedSlotDisplay');
-  if (display) {
-    display.textContent = `✦ ${formatDate(date)} om ${time}`;
-  }
+  if (display) display.textContent = `✦ ${formatDate(date)} om ${time}`;
 }
 
 // ── SUBMIT BOOKING ─────────────────────────
-function submitBooking() {
+async function submitBooking() {
   const name  = document.getElementById('bookName')?.value.trim();
   const email = document.getElementById('bookEmail')?.value.trim();
   const phone = document.getElementById('bookPhone')?.value.trim();
@@ -107,6 +209,7 @@ function submitBooking() {
 
   const successEl = document.getElementById('bookSuccess');
   const errorEl   = document.getElementById('bookError');
+  const submitBtn = document.querySelector('#boeken .btn-primary');
 
   if (successEl) successEl.style.display = 'none';
   if (errorEl)   errorEl.style.display   = 'none';
@@ -116,34 +219,66 @@ function submitBooking() {
     return;
   }
 
-  const appts = getAppointments();
-  appts.push({
-    name, email, phone,
-    type: type || '—',
-    date: selectedSlot.date,
-    time: selectedSlot.time,
-    status: 'Nieuw',
-    createdAt: new Date().toISOString()
-  });
-  saveAppointments(appts);
+  // Disable button during submit
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Bezig...'; }
 
-  renderSlots();
+  try {
+    // 1. Save to Supabase
+    await sb.post('appointments', {
+      name,
+      email,
+      phone,
+      type: type || '—',
+      date: selectedSlot.date,
+      time: selectedSlot.time,
+      status: 'Nieuw'
+    });
 
-  selectedSlot = null;
-  const slotDisplay = document.getElementById('selectedSlotDisplay');
-  if (slotDisplay) slotDisplay.textContent = '← Selecteer eerst een tijd';
-  ['bookName','bookEmail','bookPhone'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const bookType = document.getElementById('bookType');
-  if (bookType) bookType.value = '';
+    // 2. Send confirmation email via EmailJS
+    await sendConfirmationEmail({
+      to_name: name,
+      to_email: email,
+      appointment_date: formatDate(selectedSlot.date),
+      appointment_time: selectedSlot.time,
+      appointment_type: type || 'Niet opgegeven'
+    });
 
-  if (successEl) successEl.style.display = 'block';
-  renderAdminAppointments();
+    // 3. Reset form
+    selectedSlot = null;
+    const slotDisplay = document.getElementById('selectedSlotDisplay');
+    if (slotDisplay) slotDisplay.textContent = '← Selecteer eerst een tijd';
+    ['bookName','bookEmail','bookPhone'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const bookType = document.getElementById('bookType');
+    if (bookType) bookType.value = '';
+    document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
+
+    if (successEl) successEl.style.display = 'block';
+    await renderSlots();
+    await renderAdminAppointments();
+
+  } catch (err) {
+    console.error('Booking error:', err);
+    if (errorEl) {
+      errorEl.textContent = 'Er ging iets mis. Probeer opnieuw of neem contact op.';
+      errorEl.style.display = 'block';
+    }
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Bevestig Afspraak'; }
+  }
 }
 
-// ── ADMIN LOGIN MODAL ──────────────────────
+// ── SEND EMAIL VIA EMAILJS ─────────────────
+function sendConfirmationEmail(params) {
+  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params, EMAILJS_PUBLIC_KEY);
+}
+
+// ════════════════════════════════════════════
+// ██  ADMIN PANEL
+// ════════════════════════════════════════════
+
 document.getElementById('adminLoginBtn')?.addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('loginModal').classList.add('show');
@@ -178,7 +313,7 @@ function logoutAdmin() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── ADMIN: ADD TIME FIELD ──────────────────
+// ── ADD TIME FIELD ──────────────────────────
 function addTimeField() {
   const container = document.getElementById('timesContainer');
   const input = document.createElement('input');
@@ -188,86 +323,129 @@ function addTimeField() {
   container.appendChild(input);
 }
 
-// ── ADMIN: SAVE AVAILABILITY ───────────────
-function saveAvailability() {
+// ── SAVE AVAILABILITY ──────────────────────
+async function saveAvailability() {
   const date = document.getElementById('adminDate')?.value;
   if (!date) { alert('Selecteer een datum'); return; }
 
   const timeInputs = document.querySelectorAll('.adminTime');
-  const times = Array.from(timeInputs).map(i => i.value).filter(Boolean).sort();
-  if (times.length === 0) { alert('Voeg minstens één tijd toe'); return; }
+  const newTimes = Array.from(timeInputs).map(i => i.value).filter(Boolean).sort();
+  if (newTimes.length === 0) { alert('Voeg minstens één tijd toe'); return; }
 
-  const slots = getSlots();
-  const existing = slots[date] || [];
-  slots[date] = [...new Set([...existing, ...times])].sort();
-  saveSlots(slots);
+  try {
+    // Check if date already exists
+    const existing = await sb.get('slots', `date=eq.${date}`);
 
-  document.getElementById('adminDate').value = '';
-  document.querySelectorAll('.adminTime').forEach((el, i) => {
-    if (i === 0) el.value = '';
-    else el.remove();
-  });
+    if (existing && existing.length > 0) {
+      // Merge times
+      const merged = [...new Set([...(existing[0].times || []), ...newTimes])].sort();
+      await sb.patch('slots', existing[0].id, { times: merged });
+    } else {
+      // New date
+      await sb.post('slots', { date, times: newTimes });
+    }
 
-  renderAdminSlots();
-  renderSlots();
+    // Reset inputs
+    document.getElementById('adminDate').value = '';
+    document.querySelectorAll('.adminTime').forEach((el, i) => {
+      if (i === 0) el.value = '';
+      else el.remove();
+    });
+
+    await renderAdminSlots();
+    await renderSlots();
+
+  } catch (err) {
+    console.error('saveAvailability error:', err);
+    alert('Kon niet opslaan. Controleer je Supabase instellingen.');
+  }
 }
 
 // ── ADMIN: RENDER SLOTS ────────────────────
-function renderAdminSlots() {
+async function renderAdminSlots() {
   const list = document.getElementById('adminSlotList');
   if (!list) return;
 
-  const slots = getSlots();
-  const dates = Object.keys(slots).sort();
+  list.innerHTML = '<li style="opacity:0.5;font-style:italic">Laden...</li>';
 
-  if (dates.length === 0) {
-    list.innerHTML = '<li style="color:rgba(250,246,240,0.3);font-style:italic">Geen slots opgeslagen</li>';
-    return;
+  try {
+    const slots = await sb.get('slots', 'order=date.asc');
+
+    if (!slots || slots.length === 0) {
+      list.innerHTML = '<li style="color:rgba(250,246,240,0.3);font-style:italic">Geen slots opgeslagen</li>';
+      return;
+    }
+
+    list.innerHTML = slots.map(slot => `
+      <li>
+        <span>
+          <strong>${formatDate(slot.date)}</strong><br>
+          <span style="opacity:0.6;font-size:0.75rem">${(slot.times || []).join(', ')}</span>
+        </span>
+        <button class="btn-danger" onclick="deleteSlotDate(${slot.id}, '${slot.date}')">✕ Verwijder</button>
+      </li>`).join('');
+
+  } catch (err) {
+    list.innerHTML = '<li style="color:red;">Fout bij laden slots.</li>';
   }
-
-  list.innerHTML = dates.map(date => `
-    <li>
-      <span><strong>${formatDate(date)}</strong><br>
-      <span style="opacity:0.6;font-size:0.75rem">${slots[date].join(', ')}</span></span>
-      <button class="btn-danger" onclick="deleteSlotDate('${date}')">✕ Verwijder</button>
-    </li>`).join('');
 }
 
-function deleteSlotDate(date) {
+async function deleteSlotDate(id, date) {
   if (!confirm(`Verwijder alle tijden voor ${formatDate(date)}?`)) return;
-  const slots = getSlots();
-  delete slots[date];
-  saveSlots(slots);
-  renderAdminSlots();
-  renderSlots();
+  await sb.delete('slots', id);
+  await renderAdminSlots();
+  await renderSlots();
 }
 
 // ── ADMIN: RENDER APPOINTMENTS ─────────────
-function renderAdminAppointments() {
+async function renderAdminAppointments() {
   const tbody = document.getElementById('adminAppointmentsTbody');
   if (!tbody) return;
 
-  const appts = getAppointments();
+  tbody.innerHTML = '<tr><td colspan="6" style="color:rgba(250,246,240,0.3);font-style:italic;text-align:center;padding:1.5rem">Laden...</td></tr>';
 
-  if (appts.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:rgba(250,246,240,0.3);font-style:italic;text-align:center;padding:1.5rem">Nog geen afspraken</td></tr>';
-    return;
+  try {
+    const appts = await sb.get('appointments', 'order=created_at.desc');
+
+    if (!appts || appts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:rgba(250,246,240,0.3);font-style:italic;text-align:center;padding:1.5rem">Nog geen afspraken</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = appts.map(a => `
+      <tr>
+        <td>${a.name}</td>
+        <td>${formatDate(a.date)}<br><span style="opacity:0.6">${a.time}</span></td>
+        <td>${a.email}<br><span style="opacity:0.6">${a.phone}</span></td>
+        <td>${a.type}</td>
+        <td><span class="badge-status badge-new">${a.status}</span></td>
+        <td>
+          <button class="btn-danger" onclick="deleteAppointment(${a.id}, '${a.name}')" style="font-size:0.75rem;padding:0.3rem 0.6rem">
+            ✕ Verwijder
+          </button>
+        </td>
+      </tr>`).join('');
+
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:red;text-align:center;padding:1rem">Fout bij laden afspraken.</td></tr>';
   }
+}
 
-  const sorted = [...appts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  tbody.innerHTML = sorted.map(a => `
-    <tr>
-      <td>${a.name}</td>
-      <td>${formatDate(a.date)}<br><span style="opacity:0.6">${a.time}</span></td>
-      <td>${a.email}<br><span style="opacity:0.6">${a.phone}</span></td>
-      <td>${a.type}</td>
-      <td><span class="badge-status badge-new">${a.status}</span></td>
-    </tr>`).join('');
+async function deleteAppointment(id, name) {
+  if (!confirm(`Weet je zeker dat je de afspraak van ${name} wilt verwijderen?`)) return;
+  await sb.delete('appointments', id);
+  await renderAdminAppointments();
+  await renderSlots(); // refresh booked status
 }
 
 // ── INIT ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Load EmailJS SDK dynamically
+  const emailjsScript = document.createElement('script');
+  emailjsScript.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+  emailjsScript.onload = () => emailjs.init(EMAILJS_PUBLIC_KEY);
+  document.head.appendChild(emailjsScript);
+
   initScrollAnimations();
   renderSlots();
 });

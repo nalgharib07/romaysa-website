@@ -17,7 +17,7 @@
 
 body {
   font-family: 'Josefin Sans', sans-serif;
-  background: url("logo.png") no-repeat center;
+  background: url("log.png") no-repeat center;
   background-size: 150px auto; /* width 150px, height scales automatically */
   color: var(--text);
   font-weight: 300;

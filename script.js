@@ -42,45 +42,10 @@ const sb = {
   }
 };
 
-// ════════════════════════════════════════════
-// ██  STEP 2 — EMAILJS SETUP
-// ════════════════════════════════════════════
-// 1. Go to https://www.emailjs.com → Sign up (free)
-// 2. Go to "Email Services" → Add Service → Gmail
-//    Connect your romaysahamdaoui0@gmail.com
-//    Copy the Service ID (e.g. "service_abc123") → paste below
-//
-// 3. Go to "Email Templates" → Create Template
-//    Set "To Email" field to: {{to_email}}
-//    Set "Subject" to: Bevestiging afspraak – Henna by Romaysa
-//
-//    In the body, paste this template:
-//    ─────────────────────────────────────────
-//    Hallo {{to_name}},
-//
-//    Bedankt voor je afspraak bij Henna by Romaysa! 🌿
-//
-//    Hier zijn je gegevens:
-//    📅 Datum: {{appointment_date}}
-//    🕐 Tijd: {{appointment_time}}
-//    💅 Type: {{appointment_type}}
-//
-//    We kijken ernaar uit je te verwelkomen!
-//    Mocht je vragen hebben, neem dan contact op via:
-//    📱 +31 6 12 37 76 58
-//    ✉ romaysahamdaoui0@gmail.com
-//
-//    Tot snel,
-//    Romaysa 🌸
-//    ─────────────────────────────────────────
-//    Copy the Template ID (e.g. "template_xyz789") → paste below
-//
-// 4. Go to "Account" → copy your Public Key → paste below
-// ════════════════════════════════════════════
 
-const EMAILJS_SERVICE_ID  = 'service_ca3aat6';   // ← vervang dit
-const EMAILJS_TEMPLATE_ID = 'template_dgmwras';  // ← vervang dit
-const EMAILJS_PUBLIC_KEY  = 'OBXg9Iq7PHs9H2qi4';   // ← vervang dit
+const EMAILJS_SERVICE_ID  = 'service_ca3aat6';   
+const EMAILJS_TEMPLATE_ID = 'template_dgmwras'; 
+const EMAILJS_PUBLIC_KEY  = 'OBXg9Iq7PHs9H2qi4';  
 
 // ── CREDENTIALS ────────────────────────────
 const ADMIN_USER = 'Romaysa';

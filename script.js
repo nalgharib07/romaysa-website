@@ -24,9 +24,10 @@ const sb = {
     'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
   },
   async get(table, query = '') {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&${query}`, {
       headers: this.headers
     });
+    if (!res.ok) throw new Error(`GET ${table} failed: ${res.status}`);
     return res.json();
   },
   async post(table, body) {
@@ -35,6 +36,7 @@ const sb = {
       headers: { ...this.headers, 'Prefer': 'return=representation' },
       body: JSON.stringify(body)
     });
+    if (!res.ok) throw new Error(`POST ${table} failed: ${res.status}`);
     return res.json();
   },
   async patch(table, id, body) {
@@ -43,13 +45,15 @@ const sb = {
       headers: { ...this.headers, 'Prefer': 'return=representation' },
       body: JSON.stringify(body)
     });
+    if (!res.ok) throw new Error(`PATCH ${table} failed: ${res.status}`);
     return res.json();
   },
   async delete(table, id) {
-    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
       method: 'DELETE',
       headers: this.headers
     });
+    if (!res.ok) throw new Error(`DELETE ${table} failed: ${res.status}`);
   }
 };
 
@@ -105,8 +109,8 @@ async function renderSlots() {
         const key = `${slot.date}__${time}`;
         const isBooked = bookedKeys.has(key);
         return `<button
-          class="slot-btn ${isBooked ? 'booked' : ''}"
-          onclick="${isBooked ? '' : `selectSlot('${slot.date}','${time}')`}"
+          class="slot-btn${isBooked ? ' booked' : ''}"
+          onclick="${isBooked ? '' : `selectSlot('${slot.date}','${time}',this)`}"
           ${isBooked ? 'disabled title="Niet beschikbaar"' : ''}
         >${time}</button>`;
       }).join('');
@@ -124,10 +128,11 @@ async function renderSlots() {
   }
 }
 
-function selectSlot(date, time) {
+// FIX: pass `this` from onclick, no bare `event` reference
+function selectSlot(date, time, btn) {
   selectedSlot = { date, time };
-  document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
-  event.target.classList.add('selected');
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
   const display = document.getElementById('selectedSlotDisplay');
   if (display) display.textContent = `✦ ${formatDate(date)} om ${time}`;
 }
@@ -166,13 +171,17 @@ async function submitBooking() {
     });
 
     // 2. Send confirmation email via EmailJS
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_name: name,
-      to_email: email,
-      appointment_date: formatDate(selectedSlot.date),
-      appointment_time: selectedSlot.time,
-      appointment_type: type || 'Niet opgegeven'
-    }, EMAILJS_PUBLIC_KEY);
+    if (typeof emailjs !== 'undefined') {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_name: name,
+        to_email: email,
+        appointment_date: formatDate(selectedSlot.date),
+        appointment_time: selectedSlot.time,
+        appointment_type: type || 'Niet opgegeven'
+      }, EMAILJS_PUBLIC_KEY);
+    } else {
+      console.warn('EmailJS not loaded — skipping email');
+    }
 
     // 3. Reset form
     selectedSlot = null;
@@ -308,6 +317,7 @@ async function renderAdminSlots() {
       </li>`).join('');
 
   } catch (err) {
+    console.error('renderAdminSlots error:', err);
     list.innerHTML = '<li style="color:red;">Fout bij laden slots.</li>';
   }
 }
@@ -340,15 +350,16 @@ async function renderAdminAppointments() {
         <td>${formatDate(a.date)}<br><span style="opacity:0.6">${a.time}</span></td>
         <td>${a.email}<br><span style="opacity:0.6">${a.phone}</span></td>
         <td>${a.type}</td>
-        <td><span class="badge-status badge-new">${a.status}</span></td>
+        <td><span class="badge-new">${a.status}</span></td>
         <td>
-          <button class="btn-danger" onclick="deleteAppointment(${a.id}, '${a.name}')" style="font-size:0.75rem;padding:0.3rem 0.6rem">
+          <button class="btn-danger" onclick="deleteAppointment(${a.id}, '${a.name}')">
             ✕ Verwijder
           </button>
         </td>
       </tr>`).join('');
 
   } catch (err) {
+    console.error('renderAdminAppointments error:', err);
     tbody.innerHTML = '<tr><td colspan="6" style="color:red;text-align:center;padding:1rem">Fout bij laden afspraken.</td></tr>';
   }
 }
@@ -362,9 +373,11 @@ async function deleteAppointment(id, name) {
 
 // ── INIT ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Load EmailJS from CDN
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
   script.onload = () => emailjs.init(EMAILJS_PUBLIC_KEY);
+  script.onerror = () => console.warn('EmailJS kon niet laden');
   document.head.appendChild(script);
 
   initScrollAnimations();

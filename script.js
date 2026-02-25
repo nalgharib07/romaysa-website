@@ -2,7 +2,7 @@
 const { createClient } = supabase;
 const db = createClient(
   'https://tcwuqxpwrtnxewfnpwzn.supabase.co',
-  'sb_publishable_s9qgpelxpWq4YiISdjYbiw_1Vc_8Cu2'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjd3VxeHB3cnRueGV3Zm5wd3puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTgyNTMsImV4cCI6MjA4NzUzNDI1M30.6uSOTsSoODDQ24fRFbmfjYDMa5NbaPKMC28x5ABayEU'
 );
 
 // ── SELECTED SLOT ──

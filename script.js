@@ -156,7 +156,7 @@ function submitBooking() {
 
   // Send confirmation email
   if (typeof emailjs !== 'undefined') {
-    emailjs.send("service_ca3aat6", "template_dmwras", {
+    emailjs.send("service_ca3aat6", "template_dgmwras", {
       to_name: name,
       email: email,
       appointment_date: formattedDate,

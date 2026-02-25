@@ -95,22 +95,28 @@ nav {
 .hero{
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center center;
+  background-position: center 25%;
   background-size: cover;
   background-color: var(--deep); 
   min-height: 80vh;
 
   display: flex;
-  align-items: flex-start;   
+  align-items: flex-start;
   justify-content: center;
 
-  padding-top: 300px;        
+  padding-top: 400px;
 
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+}
 
 /* Keep button above overlay */
 .hero .btn-primary {

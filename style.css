@@ -95,11 +95,10 @@ nav {
   background-image: url("logo.png");
   background-repeat: no-repeat;
   background-position: center top;   
-  background-size: 110% auto;
-  background-size: cover;        
+  background-size: 110% auto;       
   background-color: #e8e3de; 
 
-  min-height: 350px;                 
+  min-height: 550px;                 
   width: 100%;
 
   padding: 0;

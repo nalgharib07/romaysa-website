@@ -158,7 +158,7 @@ function submitBooking() {
   const bookedTime = selectedSlot.time;
 
   // Send confirmation email via Brevo
-  const BREVO_API_KEY = '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';
+  const BREVO_API_KEY = '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';
 
   fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',

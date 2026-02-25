@@ -95,10 +95,10 @@ nav {
   background-image: url("logo.png");
   background-repeat: no-repeat;
   background-position: center top;   /* anchors to the top */
-  background-size: 100% auto;        /* fills full width, height scales naturally */
+  background-size: cover;        
   background-color: var(--cream);
 
-  min-height: 300px;                 /* adjust this to control how tall the hero is */
+  min-height: 350px;                 
   width: 100%;
 
   padding: 0;

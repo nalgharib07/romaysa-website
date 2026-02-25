@@ -96,7 +96,7 @@ nav {
   background-repeat: no-repeat;
   background-position: center top;   /* anchors to the top */
   background-size: cover;        
-  background-color: var(--cream);
+  background-color: #e8e3de; 
 
   min-height: 350px;                 
   width: 100%;

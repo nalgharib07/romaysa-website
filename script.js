@@ -145,7 +145,7 @@ function submitBooking() {
   appts.push(newAppointment);
   saveAppointments(appts);
 
-  // Format date for email
+  // Format date for email — capture before resetting selectedSlot
   const formattedDate = new Date(selectedSlot.date + 'T00:00:00')
     .toLocaleDateString('nl-NL', {
       weekday: 'long',
@@ -154,43 +154,96 @@ function submitBooking() {
       year: 'numeric'
     });
 
-  // Send confirmation email
-  if (typeof emailjs !== 'undefined') {
-    emailjs.send("service_ca3aat6", "template_dgmwras", {
-      to_name: name,
-      email: email,
-      appointment_date: formattedDate,
-      appointment_time: selectedSlot.time,
-      appointment_type: type || 'Niet opgegeven'
-    }).then(() => {
-      console.log('Bevestigingsmail verzonden.');
-    }).catch(error => {
-      console.error('EmailJS fout:', error);
-    });
-  }
+  // Capture time before resetting selectedSlot
+  const bookedTime = selectedSlot.time;
 
-  // Reset form
-  sucEl.style.display = 'block';
+  // Send confirmation email via Brevo
+  const BREVO_API_KEY = 'PASTE_YOUR_NEW_API_KEY_HERE';
 
-  document.getElementById('bookName').value = '';
-  document.getElementById('bookEmail').value = '';
-  document.getElementById('bookPhone').value = '';
-  document.getElementById('bookType').value = '';
+  fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': BREVO_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: { name: 'Henna by Romaysa', email: 'romaysahamdaoui0@gmail.com' },
+      to: [{ email: email, name: name }],
+      subject: 'Bevestiging afspraak – Henna by Romaysa 🌿',
+      htmlContent: `
+        <div style="font-family:Georgia,serif;max-width:520px;margin:auto;color:#2c1a0e;padding:2rem">
+          <h2 style="color:#b8933a;font-weight:normal">Henna by Romaysa</h2>
+          <p>Hallo <strong>${name}</strong>,</p>
+          <p>Bedankt voor je afspraak bij Henna by Romaysa! 🌿</p>
+          <p>Hier zijn je gegevens:</p>
+          <div style="background:#fdf6ee;border-left:3px solid #b8933a;padding:1rem 1.5rem;margin:1rem 0;border-radius:4px">
+            <p style="margin:0.4rem 0">📅 <strong>Datum:</strong> ${formattedDate}</p>
+            <p style="margin:0.4rem 0">🕐 <strong>Tijd:</strong> ${bookedTime}</p>
+            <p style="margin:0.4rem 0">💅 <strong>Type:</strong> ${type || 'Niet opgegeven'}</p>
+          </div>
+          <p>We kijken ernaar uit je te verwelkomen!</p>
+          <p>Mocht je vragen hebben, neem dan contact op via:<br>
+            📱 +31 6 12 37 76 58<br>
+            ✉ romaysahamdaoui0@gmail.com
+          </p>
+          <p style="margin-top:2rem">Tot snel,<br><em>Romaysa 🌸</em></p>
+        </div>
+      `
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log('Mail verzonden:', data);
 
-  selectedSlot = null;
+    // Reset form after successful send
+    sucEl.style.display = 'block';
 
-  const slotDisplay = document.getElementById('selectedSlotDisplay');
-  if (slotDisplay) {
-    slotDisplay.textContent = '← Selecteer eerst een tijd';
-  }
+    document.getElementById('bookName').value = '';
+    document.getElementById('bookEmail').value = '';
+    document.getElementById('bookPhone').value = '';
+    document.getElementById('bookType').value = '';
 
-  renderSlots();
+    selectedSlot = null;
 
-  const adminEl = document.getElementById('admin');
-  if (adminEl && adminEl.style.display !== 'none') {
-    renderAdminSlots();
-    renderAdminAppointments();
-  }
+    const slotDisplay = document.getElementById('selectedSlotDisplay');
+    if (slotDisplay) {
+      slotDisplay.textContent = '← Selecteer eerst een tijd';
+    }
+
+    renderSlots();
+
+    const adminEl = document.getElementById('admin');
+    if (adminEl && adminEl.style.display !== 'none') {
+      renderAdminSlots();
+      renderAdminAppointments();
+    }
+  })
+  .catch(err => {
+    console.error('Mail fout:', err);
+
+    // Still reset form even if email fails
+    sucEl.style.display = 'block';
+
+    document.getElementById('bookName').value = '';
+    document.getElementById('bookEmail').value = '';
+    document.getElementById('bookPhone').value = '';
+    document.getElementById('bookType').value = '';
+
+    selectedSlot = null;
+
+    const slotDisplay = document.getElementById('selectedSlotDisplay');
+    if (slotDisplay) {
+      slotDisplay.textContent = '← Selecteer eerst een tijd';
+    }
+
+    renderSlots();
+
+    const adminEl = document.getElementById('admin');
+    if (adminEl && adminEl.style.display !== 'none') {
+      renderAdminSlots();
+      renderAdminAppointments();
+    }
+  });
 }
 
 // ── ADMIN LOGIN ──

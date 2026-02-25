@@ -94,7 +94,7 @@ nav {
 .hero {
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center top; /* aligns image at the top */
+  background-position: center 100px; /* aligns image at the top */
   background-size: auto; /* keeps image at its natural size */
   
   height: auto; /* allow height to fit content */

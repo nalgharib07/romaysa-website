@@ -1,47 +1,40 @@
-// ── STORAGE KEYS ──
-const SLOTS_KEY = 'henna_slots';
-const APPTS_KEY = 'henna_appointments';
-
-// ── HELPERS ──
-function getSlots() {
-  return JSON.parse(localStorage.getItem(SLOTS_KEY) || '{}');
-}
-function saveSlots(data) {
-  localStorage.setItem(SLOTS_KEY, JSON.stringify(data));
-}
-function getAppointments() {
-  return JSON.parse(localStorage.getItem(APPTS_KEY) || '[]');
-}
-function saveAppointments(data) {
-  localStorage.setItem(APPTS_KEY, JSON.stringify(data));
-}
+// ── SUPABASE INIT ──
+const { createClient } = supabase;
+const db = createClient(
+  'https://tcwuqxpwrtnxewfnpwzn.supabase.co',
+  'sb_publishable_s9qgpelxpWq4YiISdjYbiw_1Vc_8Cu2'
+);
 
 // ── SELECTED SLOT ──
 let selectedSlot = null;
 
 // ── RENDER PUBLIC SLOTS ──
-function renderSlots() {
-  const slots = getSlots();
-  const appts = getAppointments();
+async function renderSlots() {
   const display = document.getElementById('slotsDisplay');
   if (!display) return;
 
-  const bookedSet = new Set(
-    appts
-      .filter(a => a.status !== 'cancelled')
-      .map(a => a.date + '_' + a.time)
-  );
+  const { data: slots, error: slotsErr } = await db
+    .from('slots')
+    .select('*')
+    .order('date', { ascending: true });
 
-  const sortedDates = Object.keys(slots).sort();
+  const { data: appts } = await db
+    .from('appointments')
+    .select('date, time, status')
+    .neq('status', 'cancelled');
 
-  if (sortedDates.length === 0) {
+  if (slotsErr || !slots || slots.length === 0) {
     display.innerHTML =
       '<p class="no-slots">Momenteel geen beschikbare tijden. Kom later terug of neem contact op.</p>';
     return;
   }
 
-  display.innerHTML = sortedDates.map(date => {
-    const times = slots[date];
+  const bookedSet = new Set(
+    (appts || []).map(a => a.date + '_' + a.time)
+  );
+
+  display.innerHTML = slots.map(slot => {
+    const { date, times } = slot;
     if (!times || times.length === 0) return '';
 
     const formattedDate = new Date(date + 'T00:00:00')
@@ -52,7 +45,9 @@ function renderSlots() {
         year: 'numeric'
       });
 
-    const timeButtons = times.map(time => {
+    const sortedTimes = [...times].sort();
+
+    const timeButtons = sortedTimes.map(time => {
       const key = date + '_' + time;
       const isBooked = bookedSet.has(key);
       const isSelected =
@@ -92,13 +87,11 @@ function selectSlot(date, time, btn) {
     });
 
   const display = document.getElementById('selectedSlotDisplay');
-  if (display) {
-    display.textContent = `✓ ${formattedDate} om ${time}`;
-  }
+  if (display) display.textContent = `✓ ${formattedDate} om ${time}`;
 }
 
 // ── SUBMIT BOOKING ──
-function submitBooking() {
+async function submitBooking() {
   const name  = document.getElementById('bookName').value.trim();
   const email = document.getElementById('bookEmail').value.trim();
   const phone = document.getElementById('bookPhone').value.trim();
@@ -111,27 +104,26 @@ function submitBooking() {
   sucEl.style.display = 'none';
 
   if (!name || !email || !phone || !selectedSlot) {
+    errEl.textContent = 'Vul alle velden in en selecteer een tijd.';
     errEl.style.display = 'block';
     return;
   }
 
-  const appts = getAppointments();
+  // Check for double booking
+  const { data: existing } = await db
+    .from('appointments')
+    .select('id')
+    .eq('date', selectedSlot.date)
+    .eq('time', selectedSlot.time)
+    .neq('status', 'cancelled');
 
-  // Prevent double booking
-  const alreadyBooked = appts.some(a =>
-    a.date === selectedSlot.date &&
-    a.time === selectedSlot.time &&
-    a.status !== 'cancelled'
-  );
-
-  if (alreadyBooked) {
+  if (existing && existing.length > 0) {
     errEl.textContent = 'Deze tijd is net geboekt. Kies een andere.';
     errEl.style.display = 'block';
     return;
   }
 
-  const newAppointment = {
-    id: Date.now(),
+  const { error } = await db.from('appointments').insert([{
     name,
     email,
     phone,
@@ -139,13 +131,17 @@ function submitBooking() {
     date: selectedSlot.date,
     time: selectedSlot.time,
     status: 'new',
-    createdAt: new Date().toISOString()
-  };
+    created_at: new Date().toISOString()
+  }]);
 
-  appts.push(newAppointment);
-  saveAppointments(appts);
+  if (error) {
+    errEl.textContent = 'Er ging iets mis. Probeer opnieuw.';
+    errEl.style.display = 'block';
+    console.error('Supabase insert error:', error);
+    return;
+  }
 
-  // Format date for email
+  // Send confirmation email
   const formattedDate = new Date(selectedSlot.date + 'T00:00:00')
     .toLocaleDateString('nl-NL', {
       weekday: 'long',
@@ -154,35 +150,26 @@ function submitBooking() {
       year: 'numeric'
     });
 
-  // Send confirmation email
   if (typeof emailjs !== 'undefined') {
     emailjs.send("service_ca3aat6", "template_dgmwras", {
       to_name: name,
-      email: email,
+      email,
       appointment_date: formattedDate,
       appointment_time: selectedSlot.time,
       appointment_type: type || 'Niet opgegeven'
-    }).then(() => {
-      console.log('Bevestigingsmail verzonden.');
-    }).catch(error => {
-      console.error('EmailJS fout:', error);
-    });
+    }).catch(err => console.error('EmailJS fout:', err));
   }
 
   // Reset form
   sucEl.style.display = 'block';
-
   document.getElementById('bookName').value = '';
   document.getElementById('bookEmail').value = '';
   document.getElementById('bookPhone').value = '';
   document.getElementById('bookType').value = '';
-
   selectedSlot = null;
 
   const slotDisplay = document.getElementById('selectedSlotDisplay');
-  if (slotDisplay) {
-    slotDisplay.textContent = '← Selecteer eerst een tijd';
-  }
+  if (slotDisplay) slotDisplay.textContent = '← Selecteer eerst een tijd';
 
   renderSlots();
 
@@ -257,33 +244,39 @@ function addTimeField() {
 }
 
 // ── ADMIN: SAVE AVAILABILITY ──
-function saveAvailability() {
+async function saveAvailability() {
   const date = document.getElementById('adminDate').value;
-  if (!date) {
-    alert('Selecteer een datum.');
-    return;
-  }
+  if (!date) { alert('Selecteer een datum.'); return; }
 
-  const times = Array.from(document.querySelectorAll('.adminTime'))
+  const newTimes = Array.from(document.querySelectorAll('.adminTime'))
     .map(i => i.value)
     .filter(Boolean);
 
-  if (times.length === 0) {
-    alert('Voeg minstens één tijd toe.');
-    return;
+  if (newTimes.length === 0) { alert('Voeg minstens één tijd toe.'); return; }
+
+  // Check if a row for this date already exists
+  const { data: existing } = await db
+    .from('slots')
+    .select('id, times')
+    .eq('date', date)
+    .maybeSingle();
+
+  if (existing) {
+    // Merge times, avoid duplicates
+    const merged = [...new Set([...existing.times, ...newTimes])].sort();
+    const { error } = await db
+      .from('slots')
+      .update({ times: merged })
+      .eq('id', existing.id);
+
+    if (error) { alert('Fout bij opslaan.'); console.error(error); return; }
+  } else {
+    const { error } = await db
+      .from('slots')
+      .insert([{ date, times: newTimes.sort() }]);
+
+    if (error) { alert('Fout bij opslaan.'); console.error(error); return; }
   }
-
-  const slots = getSlots();
-  if (!slots[date]) slots[date] = [];
-
-  times.forEach(t => {
-    if (!slots[date].includes(t)) {
-      slots[date].push(t);
-    }
-  });
-
-  slots[date].sort();
-  saveSlots(slots);
 
   document.getElementById('adminDate').value = '';
   document.getElementById('timesContainer').innerHTML =
@@ -294,66 +287,65 @@ function saveAvailability() {
 }
 
 // ── ADMIN: RENDER SLOTS ──
-function renderAdminSlots() {
-  const slots = getSlots();
+async function renderAdminSlots() {
   const list = document.getElementById('adminSlotList');
   if (!list) return;
 
-  const sorted = Object.keys(slots).sort();
+  const { data: slots } = await db
+    .from('slots')
+    .select('*')
+    .order('date', { ascending: true });
 
-  if (sorted.length === 0) {
+  if (!slots || slots.length === 0) {
     list.innerHTML =
       '<li style="color:rgba(250,246,240,0.3);font-style:italic">Nog geen slots opgeslagen.</li>';
     return;
   }
 
-  list.innerHTML = sorted.map(date => {
-    const formattedDate = new Date(date + 'T00:00:00')
+  list.innerHTML = slots.map(slot => {
+    const formattedDate = new Date(slot.date + 'T00:00:00')
       .toLocaleDateString('nl-NL', {
         day: 'numeric',
         month: 'short',
         year: 'numeric'
       });
 
+    const sortedTimes = [...(slot.times || [])].sort();
+
     return `
       <li>
-        <span>${formattedDate}: ${slots[date].join(', ')}</span>
-        <button class="btn-danger" onclick="deleteSlotDay('${date}')">
-          Verwijder
-        </button>
+        <span>${formattedDate}: ${sortedTimes.join(', ')}</span>
+        <button class="btn-danger" onclick="deleteSlotDay('${slot.id}')">Verwijder</button>
       </li>
     `;
   }).join('');
 }
 
-function deleteSlotDay(date) {
-  const slots = getSlots();
-  delete slots[date];
-  saveSlots(slots);
+async function deleteSlotDay(id) {
+  await db.from('slots').delete().eq('id', id);
   renderAdminSlots();
   renderSlots();
 }
 
 // ── ADMIN: RENDER APPOINTMENTS ──
-function renderAdminAppointments() {
-  const appts = getAppointments();
+async function renderAdminAppointments() {
   const tbody = document.getElementById('adminAppointmentsTbody');
   if (!tbody) return;
 
-  if (appts.length === 0) {
+  const { data: appts } = await db
+    .from('appointments')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!appts || appts.length === 0) {
     tbody.innerHTML =
       '<tr><td colspan="6" style="text-align:center;padding:1.5rem;font-style:italic;color:rgba(250,246,240,0.3)">Nog geen afspraken</td></tr>';
     return;
   }
 
-  tbody.innerHTML = [...appts].reverse().map((a, i) => {
-    const realIndex = appts.length - 1 - i;
-
+  tbody.innerHTML = appts.map(a => {
     const formattedDate = new Date(a.date + 'T00:00:00')
-      .toLocaleDateString('nl-NL', {
-        day: 'numeric',
-        month: 'short'
-      });
+      .toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
 
     return `
       <tr>
@@ -363,19 +355,15 @@ function renderAdminAppointments() {
         <td style="font-size:0.7rem">${a.type || '—'}</td>
         <td>${a.status}</td>
         <td>
-          <button class="btn-danger" onclick="deleteAppointment(${realIndex})">
-            Verwijder
-          </button>
+          <button class="btn-danger" onclick="deleteAppointment(${a.id})">Verwijder</button>
         </td>
       </tr>
     `;
   }).join('');
 }
 
-function deleteAppointment(index) {
-  const appts = getAppointments();
-  appts.splice(index, 1);
-  saveAppointments(appts);
+async function deleteAppointment(id) {
+  await db.from('appointments').delete().eq('id', id);
   renderAdminAppointments();
   renderSlots();
 }
@@ -383,14 +371,11 @@ function deleteAppointment(index) {
 // ── SCROLL ANIMATION ──
 const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
+    if (entry.isIntersecting) entry.target.classList.add('visible');
   });
 }, { threshold: 0.1 });
 
-document.querySelectorAll('.fade-up')
-  .forEach(el => observer.observe(el));
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
 // ── INIT ──
 renderSlots();

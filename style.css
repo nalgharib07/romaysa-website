@@ -94,7 +94,8 @@ nav {
 .hero {
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center top;   /* anchors to the top */
+  background-position: center top;   
+  background-size: 110% auto;
   background-size: cover;        
   background-color: #e8e3de; 
 

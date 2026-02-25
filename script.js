@@ -167,7 +167,7 @@ function submitBooking() {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      sender: { name: 'Henna by Romaysa', email: 'romaysahamdaoui0@gmail.com' },
+      sender: { name: 'Henna by Romaysa', email: 'romaysaautomatic@gmail.com' },
       to: [{ email: email, name: name }],
       subject: 'Bevestiging afspraak – Henna by Romaysa 🌿',
       htmlContent: `

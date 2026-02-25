@@ -94,7 +94,7 @@ nav {
 .hero {
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center top;
+  background-position: center -50px; /* moves image up */
   background-size: cover;
   min-height: 80vh;
 

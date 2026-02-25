@@ -92,23 +92,24 @@ nav {
 }
 
 /* ── HERO ── */
-.hero{
+.hero {
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center 25%;
+  background-position: center 15%;
   background-size: cover;
-  background-color: var(--deep); 
+  background-color: var(--deep);
+
   min-height: 80vh;
 
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-
-  padding-top: 400px;
 
   text-align: center;
   position: relative;
   overflow: hidden;
+
+  filter: hue-rotate(12deg) saturate(110%);
 }
 
 .hero::before {
@@ -118,11 +119,12 @@ nav {
   background: rgba(0,0,0,0.4);
 }
 
-/* Keep button above overlay */
 .hero .btn-primary {
   position: relative;
   z-index: 1;
+  margin-top: 150px; /* adjust until perfect */
 }
+
 
 /* ── BUTTON ── */
 .btn-primary {

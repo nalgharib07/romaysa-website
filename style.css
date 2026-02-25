@@ -120,7 +120,7 @@ nav {
 
 /* ── BUTTON ── */
 .btn-primary {
-  margin top: 40px;
+  margin top: 400 px;
   display: inline-block;
   background: var(--rose);
   color: #fff;

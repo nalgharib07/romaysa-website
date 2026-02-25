@@ -95,14 +95,12 @@ nav {
   background-image: url("logo.png");
   background-repeat: no-repeat;
   background-position: center 100px; /* aligns image at the top */
-  background-size: auto; /* keeps image at its natural size */
+  background-size: auto; 
   
-  height: auto; /* allow height to fit content */
-  padding: 0; /* remove extra padding */
+  padding: 0;
   
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* aligns content to top */
   align-items: center;
 
   position: relative;

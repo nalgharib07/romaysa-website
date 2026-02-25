@@ -94,12 +94,24 @@ nav {
 .hero {
   background-color: #e8e3dc;
   width: 100%;
-  padding: 0 0 3rem 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+}
+
+/* Scoped wrapper — overlay and button live here */
+.hero-image-wrap {
   position: relative;
+  width: 100%;
+  line-height: 0; 
+}
+
+/* Overlay stops exactly at image edges */
+.hero-image-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 0;
 }
 
 .hero-logo {
@@ -109,20 +121,14 @@ nav {
   display: block;
 }
 
-/* Dark overlay */
-.hero::before {
-  content: "";
+/* Button sits over the image, near the bottom */
+.hero-image-wrap .btn-primary {
   position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.2);
-  z-index: 0;
-}
-
-/* Button above overlay */
-.hero .btn-primary {
-  position: relative;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
-  margin-top: auto;
+  white-space: nowrap;
 }
 
 /* ── BUTTON ── */

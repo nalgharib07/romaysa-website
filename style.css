@@ -92,9 +92,9 @@ nav {
 }
 /* Hero section */
 .hero {
-  background-color: #f5f0eb;
+  background-color: #e8e3dc;
   width: 100%;
-  padding: 3rem 2rem 4rem;
+  padding: 0 0 3rem 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,7 +104,7 @@ nav {
 
 .hero-logo {
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
   height: auto;
   display: block;
   margin: 0 auto;

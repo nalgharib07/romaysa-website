@@ -94,11 +94,11 @@ nav {
 .hero {
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center center;
-  background-size: contain;          
-  background-color: var(--cream);    
+  background-position: center top;   /* anchors to the top */
+  background-size: 100% auto;        /* fills full width, height scales naturally */
+  background-color: var(--cream);
 
-  min-height: 400px;                
+  min-height: 300px;                 /* adjust this to control how tall the hero is */
   width: 100%;
 
   padding: 0;

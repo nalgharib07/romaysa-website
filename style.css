@@ -91,41 +91,37 @@ nav {
   .nav-links { gap: 1.5rem; }
 }
 
-/* ── HERO ── */
 .hero {
   background-image: url("logo.png");
   background-repeat: no-repeat;
-  background-position: center 15%;
+  background-position: center 5%;
   background-size: cover;
-  background-color: var(--deep);
-
   min-height: 80vh;
 
   display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* keeps content apart */
   align-items: center;
-  justify-content: center;
 
-  text-align: center;
+  padding: 6rem 0;
   position: relative;
   overflow: hidden;
-
-  filter: hue-rotate(12deg) saturate(110%);
 }
 
+/* Dark overlay */
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.4);
+  z-index: 0;
 }
 
+/* Button above overlay */
 .hero .btn-primary {
   position: relative;
   z-index: 1;
-  margin-top: 10px; /* adjust until perfect */
 }
-
-
 /* ── BUTTON ── */
 .btn-primary {
   margin-top: 400 px;

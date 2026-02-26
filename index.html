@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Henna by Romaysa</title>
   <link rel="icon" href="logo.png" type="image/png">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Josefin+Sans:wght@200;300;400&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -24,55 +24,187 @@
   </nav>
 
   <!-- HERO -->
-  <div class="hero">
-    <div class="hero-image-wrap">
-      <img src="logo.png" alt="Romaysa H. Henaya" class="hero-logo" />
+  <section class="hero">
+    <!-- Background image layers -->
+    <div class="hero-bg">
+      <div class="hero-bg-img hero-bg-left" style="background-image: url('https://images.unsplash.com/photo-1577083552431-b9c9c2b959b6?w=900&q=85&fit=crop')"></div>
+      <div class="hero-bg-img hero-bg-right" style="background-image: url('https://images.unsplash.com/photo-1532099978941-57aa9db7b1f5?w=900&q=85&fit=crop')"></div>
+      <div class="hero-bg-overlay"></div>
+    </div>
+
+    <!-- Center content -->
+    <div class="hero-center">
+      <div class="hero-ornament-top">
+        <span class="orn-line"></span>
+        <span class="orn-diamond">◆</span>
+        <span class="orn-line"></span>
+      </div>
+
+      <p class="hero-eyebrow">Traditionele kunst · Moderne elegantie</p>
+
+      <div class="hero-logo-wrap">
+        <img src="logo.png" alt="Henna by Romaysa" class="hero-logo" />
+      </div>
+
+      <h1 class="hero-title">
+        <em>Henna by</em>
+        <strong>Romaysa</strong>
+      </h1>
+
+      <p class="hero-sub">Handgemaakte henna voor bruiloften, feesten &amp; privé-sessies<br>in de regio Zaanstreek</p>
+
+      <div class="hero-ornament-bottom">
+        <span class="orn-line"></span>
+        <span class="orn-diamond">◆</span>
+        <span class="orn-line"></span>
+      </div>
+
       <a href="#boeken" class="btn-primary">Maak een Afspraak</a>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="hero-scroll">
+      <span class="scroll-label">Scroll</span>
+      <span class="scroll-line"></span>
+    </div>
+  </section>
+
+  <!-- INTRO STRIP -->
+  <div class="intro-strip">
+    <div class="intro-strip-inner">
+      <span>✦ Bruidshenna</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Feesthenna</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Privé-sessies</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Groepshenna</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Zaanstreek</span>
     </div>
   </div>
 
   <!-- PRIJZEN -->
   <section id="prijzen">
     <div class="container">
-      <div class="fade-up">
+
+      <!-- Section header -->
+      <div class="section-head fade-up">
         <div class="section-label">Aanbod</div>
         <h2 class="section-title">Prijzen &amp; Pakketten</h2>
         <div class="divider"></div>
+        <p class="section-intro">Elk ontwerp wordt met liefde en precisie met de hand aangebracht.<br>Kies het pakket dat bij jouw gelegenheid past.</p>
       </div>
+
+      <!-- Featured bridal banner -->
+      <div class="bridal-banner fade-up">
+        <div class="bridal-banner-img" style="background-image:url('https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=1200&q=90&fit=crop')"></div>
+        <div class="bridal-banner-overlay"></div>
+        <div class="bridal-banner-content">
+          <div class="bridal-eyebrow">✦ Meest Gewild ✦</div>
+          <h3 class="bridal-name">Bruidspakket</h3>
+          <p class="bridal-desc">Volle handen voor- en achterzijde, en voeten — speciaal samengesteld voor de bruid op haar grote dag.</p>
+          <div class="bridal-price">€150</div>
+          <a href="#boeken" class="btn-ghost">Afspraak Maken</a>
+        </div>
+      </div>
+
+      <!-- Price cards grid -->
       <div class="prices-grid">
+
         <div class="price-card fade-up">
-          <div class="price-name">Volle henna</div>
-          <div class="price-desc">Een complete henna-decoratie voor beide handen, rijk aan detail en stijlvol ontworpen.</div>
-          <div class="price-amount"><span>vanaf </span>€10</div>
+          <div class="price-card-inner">
+            <div class="price-num">01</div>
+            <div class="price-name">Volle henna</div>
+            <div class="divider-sm"></div>
+            <div class="price-desc">Een complete henna-decoratie voor één hand, rijk aan detail en stijlvol ontworpen.</div>
+            <div class="price-foot">
+              <div class="price-amount"><span class="price-from">vanaf </span>€10</div>
+            </div>
+          </div>
+          <div class="price-card-hover-line"></div>
         </div>
-        <div class="price-card fade-up">
-          <div class="price-name">Medium henna</div>
-          <div class="price-desc">Perfect voor wie een subtiel, maar elegant henna-patroon wil voor één hand of arm.</div>
-          <div class="price-amount">€8</div>
+
+        <div class="price-card fade-up" style="transition-delay:0.08s">
+          <div class="price-card-inner">
+            <div class="price-num">02</div>
+            <div class="price-name">Medium henna</div>
+            <div class="divider-sm"></div>
+            <div class="price-desc">Subtiel en elegant — een verfijnd patroon voor één hand of arm.</div>
+            <div class="price-foot">
+              <div class="price-amount">€8</div>
+            </div>
+          </div>
+          <div class="price-card-hover-line"></div>
         </div>
-        <div class="price-card fade-up" style="transition-delay:0.1s">
-          <div class="price-name">Simple henna</div>
-          <div class="price-desc">Een minimalistisch ontwerp, ideaal voor een kleine decoratie of accent op handen of voeten.</div>
-          <div class="price-amount">€5</div>
+
+        <div class="price-card fade-up" style="transition-delay:0.16s">
+          <div class="price-card-inner">
+            <div class="price-num">03</div>
+            <div class="price-name">Simple henna</div>
+            <div class="divider-sm"></div>
+            <div class="price-desc">Minimalistisch en tijdloos — een klein accent op handen, perfect voor elk moment.</div>
+            <div class="price-foot">
+              <div class="price-amount">€5</div>
+            </div>
+          </div>
+          <div class="price-card-hover-line"></div>
         </div>
-        <div class="price-card featured fade-up" style="transition-delay:0.2s">
-          <div class="price-name">Bruidspakket</div>
-          <div class="price-desc">Volle handen (voor- en achterzijde) en voeten, speciaal ontworpen voor de bruid op haar grote dag.</div>
-          <div class="price-amount">€150</div>
+
+        <div class="price-card fade-up" style="transition-delay:0.24s">
+          <div class="price-card-inner">
+            <div class="price-num">04</div>
+            <div class="price-name">Volle handen per zijde</div>
+            <div class="divider-sm"></div>
+            <div class="price-desc">Gedetailleerde henna op de voor- of achterkant van de hand, naar keuze.</div>
+            <div class="price-foot">
+              <div class="price-amount">€30<span class="price-unit"> / zijde</span></div>
+            </div>
+          </div>
+          <div class="price-card-hover-line"></div>
         </div>
-        <div class="price-card fade-up" style="transition-delay:0.3s">
-          <div class="price-name">Volle handen per zijde</div>
-          <div class="price-desc">Rijk gedetailleerde henna op de voor- of achterkant van de hand, naar keuze.</div>
-          <div class="price-amount">€30<span>/per zijde</span></div>
+
+        <div class="price-card fade-up" style="transition-delay:0.32s">
+          <div class="price-card-inner">
+            <div class="price-num">05</div>
+            <div class="price-name">Voeten</div>
+            <div class="divider-sm"></div>
+            <div class="price-desc">Prachtige henna-decoratie op de voeten, perfect voor speciale gelegenheden en bruiloften.</div>
+            <div class="price-foot">
+              <div class="price-amount">€60</div>
+            </div>
+          </div>
+          <div class="price-card-hover-line"></div>
         </div>
-        <div class="price-card fade-up" style="transition-delay:0.3s">
-          <div class="price-name">Voeten</div>
-          <div class="price-desc">Prachtige henna-decoratie op de voeten, perfect voor speciale gelegenheden of bruiloften.</div>
-          <div class="price-amount">€60</div>
+
+        <!-- Group card -->
+        <div class="price-card price-card-cta fade-up" style="transition-delay:0.40s">
+          <div class="price-card-inner">
+            <div class="cta-icon">✦</div>
+            <div class="price-name">Groep of Bruid?</div>
+            <div class="divider-sm"></div>
+            <div class="price-desc">Interesse in groepshenna of ons bruidspakket? Neem contact op voor een persoonlijk aanbod op maat.</div>
+            <div class="price-foot">
+              <a href="#footer" class="btn-outline-small">Neem Contact Op</a>
+            </div>
+          </div>
+          <div class="price-card-hover-line"></div>
         </div>
+
       </div>
     </div>
   </section>
+
+  <!-- GALLERY STRIP -->
+  <div class="gallery-strip">
+    <div class="gallery-strip-img" style="background-image:url('https://images.unsplash.com/photo-1551614479-0e2f74df0a8e?w=600&q=80&fit=crop')"></div>
+    <div class="gallery-strip-img" style="background-image:url('https://images.unsplash.com/photo-1561732394-9f5e30c5ec9d?w=600&q=80&fit=crop')"></div>
+    <div class="gallery-strip-img" style="background-image:url('https://images.unsplash.com/photo-1532099978941-57aa9db7b1f5?w=600&q=80&fit=crop')"></div>
+    <div class="gallery-strip-img" style="background-image:url('https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&q=80&fit=crop')"></div>
+    <div class="gallery-overlay">
+      <p class="gallery-text">Elk ontwerp is uniek, handgemaakt met passie</p>
+    </div>
+  </div>
 
   <!-- BOEKEN -->
   <section id="boeken">
@@ -221,8 +353,6 @@
     </div>
   </div>
 
-  <!-- SCRIPTS — must be last so the DOM is ready -->
   <script src="script.js"></script>
-
 </body>
 </html>

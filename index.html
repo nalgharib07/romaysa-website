@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Henna by Romaysa</title>
   <link rel="icon" href="logo.png" type="image/png">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Josefin+Sans:wght@200;300;400&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Dancing+Script:wght@400;600;700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -20,19 +20,41 @@
       <a href="#prijzen">Prijzen</a>
       <a href="#boeken">Boeken</a>
       <a href="#footer">Contact</a>
+      <a href="#" class="btn-nav" id="adminLoginBtn">Admin</a>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
-    <!-- Background image layers -->
     <div class="hero-bg">
       <div class="hero-bg-img hero-bg-left" style="background-image: url('https://images.unsplash.com/photo-1577083552431-b9c9c2b959b6?w=900&q=85&fit=crop')"></div>
       <div class="hero-bg-img hero-bg-right" style="background-image: url('https://images.unsplash.com/photo-1532099978941-57aa9db7b1f5?w=900&q=85&fit=crop')"></div>
       <div class="hero-bg-overlay"></div>
     </div>
 
-    <!-- Center content -->
+    <!-- Botanical SVG decorations -->
+    <svg class="hero-flora hero-flora-br" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="150" cy="260" rx="8" ry="50" fill="#c9897f" opacity="0.25" transform="rotate(-15 150 260)"/>
+      <ellipse cx="130" cy="250" rx="6" ry="40" fill="#c9897f" opacity="0.2" transform="rotate(-30 130 250)"/>
+      <ellipse cx="170" cy="255" rx="6" ry="38" fill="#c9897f" opacity="0.18" transform="rotate(5 170 255)"/>
+      <circle cx="148" cy="210" r="18" fill="#e8cfc8" opacity="0.35"/>
+      <circle cx="132" cy="215" r="13" fill="#e8cfc8" opacity="0.3"/>
+      <circle cx="166" cy="218" r="11" fill="#e8cfc8" opacity="0.25"/>
+      <ellipse cx="200" cy="240" rx="5" ry="35" fill="#c9897f" opacity="0.15" transform="rotate(20 200 240)"/>
+      <circle cx="200" cy="208" r="9" fill="#d4aaa4" opacity="0.3"/>
+      <ellipse cx="90" cy="280" rx="4" ry="30" fill="#c9897f" opacity="0.15" transform="rotate(-10 90 280)"/>
+      <circle cx="88" cy="252" r="7" fill="#e8cfc8" opacity="0.25"/>
+    </svg>
+
+    <svg class="hero-flora hero-flora-tl" viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="130" cy="20" rx="7" ry="45" fill="#c9897f" opacity="0.2" transform="rotate(10 130 20)"/>
+      <ellipse cx="110" cy="25" rx="5" ry="38" fill="#c9897f" opacity="0.18" transform="rotate(25 110 25)"/>
+      <circle cx="128" cy="62" r="16" fill="#e8cfc8" opacity="0.32"/>
+      <circle cx="112" cy="60" r="11" fill="#e8cfc8" opacity="0.25"/>
+      <ellipse cx="155" cy="30" rx="5" ry="32" fill="#c9897f" opacity="0.15" transform="rotate(-10 155 30)"/>
+      <circle cx="157" cy="62" r="9" fill="#d4aaa4" opacity="0.28"/>
+    </svg>
+
     <div class="hero-center">
       <div class="hero-ornament-top">
         <span class="orn-line"></span>
@@ -62,7 +84,6 @@
       <a href="#boeken" class="btn-primary">Maak een Afspraak</a>
     </div>
 
-    <!-- Scroll indicator -->
     <div class="hero-scroll">
       <span class="scroll-label">Scroll</span>
       <span class="scroll-line"></span>
@@ -81,6 +102,16 @@
       <span>✦ Groepshenna</span>
       <span class="strip-dot">·</span>
       <span>✦ Zaanstreek</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Bruidshenna</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Feesthenna</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Privé-sessies</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Groepshenna</span>
+      <span class="strip-dot">·</span>
+      <span>✦ Zaanstreek</span>
     </div>
   </div>
 
@@ -88,9 +119,8 @@
   <section id="prijzen">
     <div class="container">
 
-      <!-- Section header -->
       <div class="section-head fade-up">
-        <div class="section-label">Aanbod</div>
+        <div class="section-label">Ons aanbod</div>
         <h2 class="section-title">Prijzen &amp; Pakketten</h2>
         <div class="divider"></div>
         <p class="section-intro">Elk ontwerp wordt met liefde en precisie met de hand aangebracht.<br>Kies het pakket dat bij jouw gelegenheid past.</p>
@@ -177,7 +207,6 @@
           <div class="price-card-hover-line"></div>
         </div>
 
-        <!-- Group card -->
         <div class="price-card price-card-cta fade-up" style="transition-delay:0.40s">
           <div class="price-card-inner">
             <div class="cta-icon">✦</div>
@@ -246,7 +275,7 @@
               <option>Voeten – €60</option>
             </select>
           </div>
-          <div class="price-desc">*Interesse in groepshenna of ons bruidspakket? Neem contact op voor meer details.</div>
+          <div class="price-desc" style="margin-bottom:0.5rem">*Interesse in groepshenna of ons bruidspakket? Neem contact op voor meer details.</div>
           <button class="btn-primary" onclick="submitBooking()" style="width:100%;margin-top:1rem">Bevestig Afspraak</button>
           <div class="msg-success" id="bookSuccess">✓ Afspraak aangevraagd! Je ontvangt een bevestiging via e-mail.</div>
           <div class="msg-error" id="bookError">Vul alle verplichte velden in en selecteer een tijd.</div>
@@ -333,8 +362,8 @@
     </div>
     <div class="footer-bottom">
       <p>© 2026 Henna by Romaysa</p>
-      <p style="color:rgba(184,147,58,0.4)">✦</p>
-      <a href="#" class="btn-nav" id="adminLoginBtn">Admin</a>
+      <p style="color:var(--rose);opacity:0.5">✦</p>
+      <p style="font-size:0.72rem;color:var(--muted)">Met liefde gemaakt</p>
     </div>
   </footer>
 
